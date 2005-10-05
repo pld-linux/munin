@@ -66,7 +66,7 @@ install -d $RPM_BUILD_ROOT/var/www/html/munin
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 
-cp node/node.d/README README.plugins
+install node/node.d/README README.plugins
 
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/plugin-conf.d/munin-node
@@ -77,6 +77,9 @@ install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/plugin-co
 
 install server/munin-htaccess $RPM_BUILD_ROOT/var/www/html/munin/.htaccess
 install server/style.css $RPM_BUILD_ROOT/var/www/html/munin
+
+install -d $RPM_BUILD_ROOT%{_sbindir}
+mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}/munin-cron
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -123,7 +126,7 @@ fi
 %defattr(644,root,root,755)
 %doc README.api README.plugins ChangeLog
 # %{_docdir}/munin/README.config
-%attr(755,root,root) %{_bindir}/munin-cron
+%attr(755,root,root) %{_sbindir}/munin-cron
 %{_datadir}/munin/munin-graph
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
