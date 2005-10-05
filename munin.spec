@@ -4,7 +4,7 @@ Version:	1.3.2
 Release:	0.1
 License:	GPL
 Group:		Daemons
-Source0:	http://dl.sourceforge.net/%{name}-%{version}.tar.gz
+Source0:	http://dl.sourceforge.net/%{name}/%{name}-%{version}.tar.gz
 # Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
 URL:		http://munin.sourceforge.net/
 Requires:	perl-HTML-Template
