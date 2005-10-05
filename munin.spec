@@ -1,3 +1,4 @@
+%include	/usr/lib/rpm/macros.perl
 Summary:	Munin is the Linpro RRD data agent
 Name:		munin
 Version:	1.3.2
@@ -6,7 +7,10 @@ License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/%{name}/%{name}_%{version}.tar.gz
 # Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
+Source1:	%{name}-node.init
+Source2:	%{name}.cron
 URL:		http://munin.sourceforge.net/
+BuildRequires:	perl-devel
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
 Requires:	rrdtool
@@ -45,135 +49,135 @@ perl -pi -e 's,\$\(INSTALL.+\.(pdf|txt) \$\(DOCDIR,# $&,' Makefile
 	build
 
 %install
+rm -rf $RPM_BUILD_ROOT
+install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d}
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/munin/{plugins,plugin-conf.d}
+install -d $RPM_BUILD_ROOT/var/{lib,log}/munin
+
+install -d $RPM_BUILD_ROOT/var/www/html/munin
 
 ## Node
-rm -rf $RPM_BUILD_ROOT
 %{__make} 	CONFIG=dists/redhat/Makefile.config \
 	DOCDIR=$RPM_BUILD_ROOT%{_docdir}/munin \
 	MANDIR=$RPM_BUILD_ROOT%{_mandir} \
 	DESTDIR=$RPM_BUILD_ROOT \
-    	install-node install-node-plugins install-doc install-man
+    	install
 
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/munin/plugins
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/munin/plugin-conf.d
-install -d $RPM_BUILD_ROOT/var/lib/munin
-install -d $RPM_BUILD_ROOT/var/log/munin
+install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
+install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 
-#install -m 0755 node/redhat/munin-node %{buildroot}/etc/init.d/
-install dists/redhat/munin-node.rc $RPM_BUILD_ROOT%{_sysconfdir}/init.d/munin-node
+cp node/node.d/README README.plugins
+
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/plugin-conf.d/munin-node
 
-chmod -x $RPM_BUILD_ROOT%{_datadir}/munin/plugins/sybase_space
 ## Server
-
-%{__make} 	CONFIG=dists/redhat/Makefile.config \
-	DESTDIR=$RPM_BUILD_ROOT \
-	install-main
 
 # cf=%{buildroot}/etc/munin/munin.conf; sed 's,/var/www/munin,/var/www/html/munin,g' < $cf > $cf.patch && mv $cf.patch $cf
 
-install -d $RPM_BUILD_ROOT/var/www/html/munin
-install -d $RPM_BUILD_ROOT/var/log/munin
-install -d $RPM_BUILD_ROOT/etc/cron.d
-# silly RPM triggers want to make debug enabled libraries.  let it try.
-install -d $RPM_BUILD_ROOT%{_prefix}/lib/debug
-
-install dists/redhat/munin.cron.d $RPM_BUILD_ROOT/etc/cron.d/munin
 install server/munin-htaccess $RPM_BUILD_ROOT/var/www/html/munin/.htaccess
 install server/style.css $RPM_BUILD_ROOT/var/www/html/munin
-
-install ChangeLog $RPM_BUILD_ROOT%{_docdir}/munin/ChangeLog
-
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %pre node
-getent group munin >/dev/null || groupadd -r munin
-getent passwd munin > /dev/null || useradd -r -d /var/lib/munin -g munin munin
+%groupadd -g 158 munin
+%useradd -o -u 158 -s /bin/false -g munin -c "Munin Node agent" -d /var/lib/munin
 
 %post node
-chmod -R g+w /var/lib/munin/
-if [ $1 = 1 ] ; then
+if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
 	%{_sbindir}/munin-node-configure --shell | sh
+else
+	if [ -f /var/lock/subsys/munin-node ]; then
+		/etc/rc.d/init.d/munin-node restart >&2
+	fi
 fi
-chown -R munin /var/lib/munin
 
 %preun node
-if [ $1 = 0 ] ; then
+if [ "$1" = "0" ] ; then
+	if [ -f /var/lock/subsys/munin-node ]; then
+		/etc/rc.d/init.d/munin-node stop >&2
+	fi
 	/sbin/chkconfig --del munin-node
-	rmdir /var/log/munin 2>/dev/null || echo " "
+fi
+
+%postun node
+if [ "$1" = "0" ]; then
+	%userremove munin
+	%groupremove munin
 fi
 
 %pre
-getent group munin >/dev/null || groupadd -r munin
-getent passwd munin > /dev/null || useradd -r -d /var/lib/munin -g munin munin
-
-%post
-chown -R munin /var/www/html/munin
-chown -R munin /var/log/munin
-chown -R munin /var/lib/munin
+%groupadd -g 158 munin
+%useradd -o -u 158 -s /bin/false -g munin -c "Munin Node agent" -d /var/lib/munin
 
 %postun
-if [ $1 = 0 ] ; then
-	userdel munin
+if [ "$1" = "0" ]; then
+	%userremove munin
+	%groupremove munin
 fi
 
 %files
 %defattr(644,root,root,755)
-%doc %{_docdir}/munin/README.api
-#%doc %{_docdir}/munin/README.config
-%doc %{_docdir}/munin/README.plugins
-%doc %{_docdir}/munin/COPYING
-%doc %{_docdir}/munin/ChangeLog
+%doc README.api README.plugins ChangeLog
+# %{_docdir}/munin/README.config
 %attr(755,root,root) %{_bindir}/munin-cron
 %{_datadir}/munin/munin-graph
 %{_datadir}/munin/munin-html
 %{_datadir}/munin/munin-limits
 %{_datadir}/munin/munin-update
-%{_libdir}/perl5/*perl/5.*/Munin.pm
-%dir %{_sysconfdir}/munin/templates
+
+%{perl_vendorlib}/Munin.pm
+#%{perl_vendorarch}/RRDs.pm
+#%dir %{perl_vendorarch}/auto/RRDs
+#%{perl_vendorarch}/auto/RRDs/RRDs.bs
+#%attr(755,root,root) %{perl_vendorarch}/auto/RRDs/RRDs.so
+#%{_mandir}/man3/RRDp.3*
+#%{_mandir}/man3/RRDs.3*
+
 %dir %{_sysconfdir}/munin
+%dir %{_sysconfdir}/munin/templates
 %{_sysconfdir}/munin/templates/*
 /etc/cron.d/munin
 %config(noreplace) %{_sysconfdir}/munin/munin.conf
+
 %attr(-, munin, root) %dir /var/lib/munin
 %attr(-, munin, root) %dir /var/log/munin
 %attr(-, munin, root) %dir /var/www/html/munin
 %attr(-, munin, root) %dir /var/www/html/munin/cgi/cgi
 %attr(-, munin, root) /var/www/html/munin/style.css
-%config /var/www/html/munin/.htaccess
-%doc %{_mandir}/man8/munin-graph*
-%doc %{_mandir}/man8/munin-update*
-%doc %{_mandir}/man8/munin-limits*
-%doc %{_mandir}/man8/munin-html*
-%doc %{_mandir}/man8/munin-cron*
-%doc %{_mandir}/man5/munin.conf*
+%attr(-, munin, root) %config /var/www/html/munin/.htaccess
+
+%{_mandir}/man8/munin-graph*
+%{_mandir}/man8/munin-update*
+%{_mandir}/man8/munin-limits*
+%{_mandir}/man8/munin-html*
+%{_mandir}/man8/munin-cron*
+%{_mandir}/man5/munin.conf*
 
 %files node
 %defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/munin/munin-node.conf
-%config(noreplace) %{_sysconfdir}/munin/plugin-conf.d/munin-node
-%attr(754,root,root) %config /etc/rc.d/init.d/munin-node
-%config(noreplace) %{_sysconfdir}/munin/plugins.conf
+%doc build/doc/*.html
+%dir %{_sysconfdir}/munin
+%dir %{_sysconfdir}/munin/plugins
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/munin-node.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/plugins.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/plugin-conf.d/munin-node
+%attr(754,root,root) /etc/rc.d/init.d/munin-node
 %attr(755,root,root) %{_sbindir}/munin-run
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
 %attr(755,root,root) %{_sbindir}/munin-node-configure-snmp
-%dir /var/log/munin
+%attr(-, munin, root) %dir /var/log/munin
 %dir %{_datadir}/munin
-%dir %{_sysconfdir}/munin/plugins
-%dir %{_sysconfdir}/munin
-%dir /var/lib/munin
-%dir %attr(-, root, munin) /var/lib/munin/plugin-state
+
+%dir %attr(770, munin, munin) /var/lib/munin
+%dir %attr(770, munin, munin) /var/lib/munin/plugin-state
+
 %{_datadir}/munin/plugins/*
-%doc %{_docdir}/munin/COPYING
-%doc %{_docdir}/munin/munin-doc.html
-%doc %{_docdir}/munin/munin-faq.html
-%doc %{_mandir}/man8/munin-run*
-%doc %{_mandir}/man8/munin-node*
-%doc %{_mandir}/man5/munin-node*
-#%doc %{_mandir}/man5/node.conf*
+
+%{_mandir}/man5/munin-node*
+%{_mandir}/man8/munin-run*
+%{_mandir}/man8/munin-node*
