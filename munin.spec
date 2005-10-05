@@ -5,7 +5,7 @@ Version:	1.3.2
 Release:	0.1
 License:	GPL
 Group:		Daemons
-Source0:	http://dl.sourceforge.net/%{name}/%{name}_%{version}.tar.gz
+Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
 # Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
@@ -79,7 +79,7 @@ install server/munin-htaccess $RPM_BUILD_ROOT/var/www/html/munin/.htaccess
 install server/style.css $RPM_BUILD_ROOT/var/www/html/munin
 
 install -d $RPM_BUILD_ROOT%{_sbindir}
-mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}/munin-cron
+mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}}/munin-cron
 
 %clean
 rm -rf $RPM_BUILD_ROOT
