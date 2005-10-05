@@ -1,0 +1,7 @@
+#
+# cron-jobs for munin
+#
+MAILTO=root
+
+*/5 * * * *     munin /usr/bin/munin-cron
+10 10 * * *     munin /usr/share/munin/munin-nagios --removeok
