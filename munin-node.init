@@ -1,0 +1,56 @@
+#! /bin/sh
+#
+# munin-node	Control the Munin Node Server (formerly Linpro RRD client)
+#
+# chkconfig: 2345 90 10
+# description: munin node agents
+# processname: munin-node
+# config: /etc/munin/munin-node.conf
+# pidfile: /var/run/muin-node.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+RETVAL=0
+PROCNAME=munin-node
+
+mkdir -p /var/run/munin 2>/dev/null
+chown munin /var/run/munin
+
+# See how we were called.
+case "$1" in
+  start)
+	if [ ! -f /var/lock/subsys/munin-node ]; then
+		msg_starting "Munin Node"
+		daemon --fork --waitfortime 3 --waitforname munin-node munin-node
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/munin-node
+	else
+		msg_already_running "Munin Node"
+	fi
+	;;
+  stop)
+	if [ -f /var/lock/subsys/munin-node ]; then
+		msg_stopping "Munin Node"
+		killproc munin-node
+		RETVAL=$?
+		rm -f /var/lock/subsys/munin-node >/dev/null 2>/dev/null
+	else
+		msg_not_running "Munin Node"
+	fi
+	;;
+  status)
+	status munin-node
+	exit $?
+	;;
+  restart|reload)
+  	$0 stop
+	$0 start
+	exit $?
+	;;
+  *)
+	echo "Usage: $0 {start|stop|status|restart}"
+	exit 1
+esac
+
+exit $RETVAL
