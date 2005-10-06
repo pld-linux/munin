@@ -1,0 +1,19 @@
+--- munin-1.3.2/Makefile~	2005-04-15 22:37:29.000000000 +0200
++++ munin-1.3.2/Makefile	2005-10-06 18:50:39.096579400 +0200
+@@ -20,6 +20,7 @@
+ 	mkdir -p $(CONFDIR)/templates
+ 	mkdir -p $(LIBDIR)
+ 	mkdir -p $(BINDIR)
++	mkdir -p $(SBINDIR)
+ 	mkdir -p $(PERLLIB)
+ 
+ 	mkdir -p $(LOGDIR)
+@@ -39,7 +40,7 @@
+ 
+ 	test -f "$(CONFDIR)/munin.conf"  || $(INSTALL) -m 0644 build/server/munin.conf $(CONFDIR)/
+ 
+-	$(INSTALL) -m 0755 build/server/munin-cron $(BINDIR)/
++	$(INSTALL) -m 0755 build/server/munin-cron $(SBINDIR)/
+ 
+ 	$(INSTALL) -m 0755 build/server/munin-update $(LIBDIR)/
+ 	$(INSTALL) -m 0755 build/server/munin-graph $(LIBDIR)/
