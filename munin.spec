@@ -1,3 +1,7 @@
+#
+# Condtional build:
+%bcond_with	sybase		# add Sybase support to munin-node
+#
 %include	/usr/lib/rpm/macros.perl
 Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
@@ -10,8 +14,14 @@ Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
 # Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
+Source2:	%{name}-Makefile.config
+Patch0:		%{name}-Makefile.patch
 URL:		http://munin.sourceforge.net/
+BuildRequires:	htmldoc
+BuildRequires:	html2text
 BuildRequires:	perl-devel
+
+Requires:	%{name}-common = %{version}-%{release}
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
 Requires:	rrdtool
@@ -28,10 +38,33 @@ Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wêz³ów
 i przetwarza dane przy u¿yciu RRDtoola, a nastêpnie prezentuje je na
 stronach WWW.
 
+%package common
+Summary:	Munin - the Linpro RRD data agent - common files
+Summary(pl):	Munin - agent danych RRD Linpro - wspólne pliki
+Group:		Daemons
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/bin/id
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
+Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
+
+%description common
+Munin, formerly known as The Linpro RRD server, queries a number of
+nodes, and processes the data using RRDtool and presents it on web
+pages.
+
+%description common -l pl
+Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wêz³ów
+i przetwarza dane przy u¿yciu RRDtoola, a nastêpnie prezentuje je na
+stronach WWW.
+
 %package node
 Summary:	Linpro RRD data agent
 Summary(pl):	Agent danych RRD Linpro
 Group:		Daemons
+Requires(post,preun):	/sbin/chkconfig
+Requires:	%{name}-common = %{version}-%{release}
 #Requires:	perl-Config-General
 Requires:	perl-Net-Server
 Requires:	procps >= 2.0.7
@@ -47,28 +80,23 @@ Munin.
 
 %prep
 %setup -q
+%patch0 -p1
+install -m644 %{SOURCE2} Makefile.config.pld
 
 %build
-
-# htmldoc and html2text are not available for Red Hat. Quick hack with perl:
-# Skip the PDFs.
-perl -pi -e 's,htmldoc munin,cat munin, or s,html(2text|doc),# $&,' Makefile
-perl -pi -e 's,\$\(INSTALL.+\.(pdf|txt) \$\(DOCDIR,# $&,' Makefile
 %{__make} clean
 %{__make} build \
-	CONFIG=dists/redhat/Makefile.config
+	CONFIG=Makefile.config.pld
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d}
 install -d $RPM_BUILD_ROOT%{_sysconfdir}/munin/{plugins,plugin-conf.d}
 install -d $RPM_BUILD_ROOT/var/{lib,log}/munin
+install -d $RPM_BUILD_ROOT%{_datadir}/%{name}/html
 
-install -d $RPM_BUILD_ROOT/var/www/html/munin
-
-## Node
 %{__make} install \
-	CONFIG=dists/redhat/Makefile.config \
+	CONFIG=Makefile.config.pld \
 	DOCDIR=$RPM_BUILD_ROOT%{_docdir}/munin \
 	MANDIR=$RPM_BUILD_ROOT%{_mandir} \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -81,22 +109,16 @@ install node/node.d/README README.plugins
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/plugin-conf.d/munin-node
 
-## Server
+install server/munin-htaccess $RPM_BUILD_ROOT%{_datadir}/%{name}/html/.htaccess
+install server/style.css $RPM_BUILD_ROOT%{_datadir}/%{name}/html
 
-# cf=%{buildroot}/etc/munin/munin.conf; sed 's,/var/www/munin,/var/www/html/munin,g' < $cf > $cf.patch && mv $cf.patch $cf
-
-install server/munin-htaccess $RPM_BUILD_ROOT/var/www/html/munin/.htaccess
-install server/style.css $RPM_BUILD_ROOT/var/www/html/munin
-
-install -d $RPM_BUILD_ROOT%{_sbindir}
-mv $RPM_BUILD_ROOT{%{_bindir},%{_sbindir}}/munin-cron
+# A hack so rpm won't find deps on perl(DBD::Sybase)
+%if %{without sybase}
+chmod -x $RPM_BUILD_ROOT%{_datadir}/%{name}/plugins/sybase_space
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
-
-%pre node
-%groupadd -g 158 munin
-%useradd -o -u 158 -s /bin/false -g munin -c "Munin Node agent" -d /var/lib/munin
 
 %post node
 if [ "$1" = "1" ] ; then
@@ -116,17 +138,11 @@ if [ "$1" = "0" ] ; then
 	/sbin/chkconfig --del munin-node
 fi
 
-%postun node
-if [ "$1" = "0" ]; then
-	%userremove munin
-	%groupremove munin
-fi
-
-%pre
+%pre common
 %groupadd -g 158 munin
 %useradd -o -u 158 -s /bin/false -g munin -c "Munin Node agent" -d /var/lib/munin
 
-%postun
+%postun common
 if [ "$1" = "0" ]; then
 	%userremove munin
 	%groupremove munin
@@ -134,38 +150,21 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%doc README.api README.plugins ChangeLog
-# %{_docdir}/munin/README.config
-%attr(755,root,root) %{_sbindir}/munin-cron
-%dir %{_datadir}/munin
-%{_datadir}/munin/munin-graph
-%{_datadir}/munin/munin-html
-%{_datadir}/munin/munin-limits
-%{_datadir}/munin/munin-update
-
-%{perl_vendorlib}/Munin.pm
-#%{perl_vendorarch}/RRDs.pm
-#%dir %{perl_vendorarch}/auto/RRDs
-#%{perl_vendorarch}/auto/RRDs/RRDs.bs
-#%attr(755,root,root) %{perl_vendorarch}/auto/RRDs/RRDs.so
-#%{_mandir}/man3/RRDp.3*
-#%{_mandir}/man3/RRDs.3*
-
-%dir %{_sysconfdir}/munin
+%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/cron.d/munin
 %dir %{_sysconfdir}/munin/templates
 %{_sysconfdir}/munin/templates/*
-/etc/cron.d/munin
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/munin.conf
-
-# XXX: don't use %attr(-,...)
-%attr(-,munin,root) %dir /var/lib/munin
-%attr(-,munin,root) %dir /var/log/munin
-# XXX: FHS
-%attr(-,munin,root) %dir /var/www/html/munin
-%attr(-,munin,root) %dir /var/www/html/munin/cgi/cgi
-%attr(-,munin,root) /var/www/html/munin/style.css
-%attr(-,munin,root) %config /var/www/html/munin/.htaccess
-
+%attr(755,root,root) %{_sbindir}/munin-cron
+%attr(755,root,root) %{_datadir}/munin/munin-graph
+%attr(755,root,root) %{_datadir}/munin/munin-html
+%attr(755,root,root) %{_datadir}/munin/munin-limits
+%attr(755,root,root) %{_datadir}/munin/munin-update
+%attr(755,munin,root) %dir %{_datadir}/munin/html
+%attr(755,munin,root) %dir %{_datadir}/munin/html/cgi
+%attr(644,munin,root) %{_datadir}/munin/html/.htaccess
+%attr(644,munin,root) %{_datadir}/munin/html/style.css
+%attr(755,munin,root) %{_datadir}/munin/html/cgi/munin-cgi-graph
+%{perl_vendorlib}/Munin.pm
 %{_mandir}/man8/munin-graph*
 %{_mandir}/man8/munin-update*
 %{_mandir}/man8/munin-limits*
@@ -173,10 +172,18 @@ fi
 %{_mandir}/man8/munin-cron*
 %{_mandir}/man5/munin.conf*
 
+%files common
+%defattr(644,root,root,755)
+%doc README.api README.plugins ChangeLog
+# %{_docdir}/munin/README.config
+%doc build/doc/*.{html,pdf}
+%dir %{_sysconfdir}/munin
+%dir %{_datadir}/munin
+%attr(750,munin,root) %dir /var/log/munin
+%attr(770,munin,munin) %dir /var/lib/munin
+
 %files node
 %defattr(644,root,root,755)
-%doc build/doc/*.html
-%dir %{_sysconfdir}/munin
 %dir %{_sysconfdir}/munin/plugins
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/munin-node.conf
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/plugins.conf
@@ -186,16 +193,9 @@ fi
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
 %attr(755,root,root) %{_sbindir}/munin-node-configure-snmp
-# XXX: don't use %attr(-,...)
-%attr(-,munin,root) %dir /var/log/munin
-%dir %{_datadir}/munin
-
-%dir %attr(770,munin,munin) /var/lib/munin
-%dir %attr(770,munin,munin) /var/lib/munin/plugin-state
-
 %dir %{_datadir}/munin/plugins
-%{_datadir}/munin/plugins/*
-
+%attr(755,root,root) %{_datadir}/munin/plugins/*
+%dir %attr(770,munin,munin) /var/lib/munin/plugin-state
 %{_mandir}/man5/munin-node*
 %{_mandir}/man8/munin-run*
 %{_mandir}/man8/munin-node*
