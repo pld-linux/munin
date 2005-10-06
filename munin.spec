@@ -20,8 +20,8 @@ URL:		http://munin.sourceforge.net/
 BuildRequires:	htmldoc
 BuildRequires:	html2text
 BuildRequires:	perl-devel
-
 Requires:	%{name}-common = %{version}-%{release}
+Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
 Requires:	rrdtool
@@ -67,6 +67,8 @@ Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
 #Requires:	perl-Config-General
 Requires:	perl-Net-Server
+Requires:	perl-Net-SNMP
+Requires:	perl-libwww
 Requires:	procps >= 2.0.7
 Requires:	sysstat
 
@@ -140,7 +142,7 @@ fi
 
 %pre common
 %groupadd -g 158 munin
-%useradd -o -u 158 -s /bin/false -g munin -c "Munin Node agent" -d /var/lib/munin
+%useradd -o -u 158 -s /bin/false -g munin -c "Munin Node agent" -d /var/lib/munin munin
 
 %postun common
 if [ "$1" = "0" ]; then
