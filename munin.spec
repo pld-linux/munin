@@ -7,14 +7,14 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.2
-Release:	0.1
+Release:	0.2
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
 # Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
-Source2:	%{name}-Makefile.config
+Source3:	%{name}-Makefile.config
 Patch0:		%{name}-Makefile.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	htmldoc
@@ -83,7 +83,7 @@ Munin.
 %prep
 %setup -q
 %patch0 -p1
-install -m644 %{SOURCE2} Makefile.config.pld
+install -m644 %{SOURCE3} Makefile.config.pld
 
 %build
 %{__make} clean
