@@ -15,6 +15,7 @@ Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-Makefile.config
+Source4:	%{name}-apache.conf
 Patch0:		%{name}-Makefile.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	htmldoc
@@ -27,6 +28,9 @@ Requires:	perl-Net-Server
 Requires:	rrdtool
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		_sysconfdir	/etc/%{name}
+%define		htmldir		/home/services/httpd/html/%{name}
 
 %description
 Munin, formerly known as The Linpro RRD server, queries a number of
@@ -93,9 +97,9 @@ install -m644 %{SOURCE3} Makefile.config.pld
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d}
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/munin/{plugins,plugin-conf.d}
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/{plugins,plugin-conf.d}
 install -d $RPM_BUILD_ROOT/var/{lib,log}/munin
-install -d $RPM_BUILD_ROOT%{_datadir}/%{name}/html
+install -d $RPM_BUILD_ROOT%{_datadir}/%{name}/cgi
 
 %{__make} install \
 	CONFIG=Makefile.config.pld \
@@ -106,13 +110,16 @@ install -d $RPM_BUILD_ROOT%{_datadir}/%{name}/html
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 
+install %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/apache.conf
+
 install node/node.d/README README.plugins
 
-install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/
-install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/munin/plugin-conf.d/munin-node
+install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/
+install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
 
-install server/munin-htaccess $RPM_BUILD_ROOT%{_datadir}/%{name}/html/.htaccess
-install server/style.css $RPM_BUILD_ROOT%{_datadir}/%{name}/html
+install server/munin-htaccess $RPM_BUILD_ROOT%{htmldir}/.htaccess
+install server/style.css $RPM_BUILD_ROOT%{htmldir}/
+mv -f $RPM_BUILD_ROOT%{htmldir}/cgi/* $RPM_BUILD_ROOT%{_datadir}/%{name}/cgi/
 
 # A hack so rpm won't find deps on perl(DBD::Sybase)
 %if %{without sybase}
@@ -121,6 +128,32 @@ chmod -x $RPM_BUILD_ROOT%{_datadir}/%{name}/plugins/sybase_space
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post
+if [ -f /etc/httpd/httpd.conf ] && ! grep -q "^Include.*/etc/%{name}/apache.conf" /etc/httpd/httpd.conf; then
+        echo "Include /etc/%{name}/apache.conf" >> /etc/httpd/httpd.conf
+elif [ -d /etc/httpd/httpd.conf ]; then
+        ln -sf /etc/%{name}/apache.conf /etc/httpd/httpd.conf/99_%{name}.conf
+fi
+if [ -f /var/lock/subsys/httpd ]; then
+        /usr/sbin/apachectl restart 1>&2
+fi
+
+%preun
+if [ "$1" = "0" ]; then
+        umask 027
+        if [ -d /etc/httpd/httpd.conf ]; then
+                rm -f /etc/httpd/httpd.conf/99_%{name}.conf
+        else
+                grep -v "^Include.*/etc/%{name}/apache.conf" /etc/httpd/httpd.conf > \
+                        /etc/httpd/httpd.conf.tmp
+                mv -f /etc/httpd/httpd.conf.tmp /etc/httpd/httpd.conf
+        fi
+
+        if [ -f /var/lock/subsys/httpd ]; then
+                /usr/sbin/apachectl restart 1>&2
+        fi
+fi
 
 %post node
 if [ "$1" = "1" ] ; then
@@ -154,19 +187,20 @@ fi
 %files
 %defattr(644,root,root,755)
 %attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/cron.d/munin
-%dir %{_sysconfdir}/munin/templates
-%{_sysconfdir}/munin/templates/*
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/munin.conf
+%dir %{_sysconfdir}/templates
+%{_sysconfdir}/templates/*
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apache.conf
 %attr(755,root,root) %{_sbindir}/munin-cron
 %attr(755,root,root) %{_datadir}/munin/munin-graph
 %attr(755,root,root) %{_datadir}/munin/munin-html
 %attr(755,root,root) %{_datadir}/munin/munin-limits
 %attr(755,root,root) %{_datadir}/munin/munin-update
-%attr(755,munin,root) %dir %{_datadir}/munin/html
-%attr(755,munin,root) %dir %{_datadir}/munin/html/cgi
-%attr(644,munin,root) %{_datadir}/munin/html/.htaccess
-%attr(644,munin,root) %{_datadir}/munin/html/style.css
-%attr(755,munin,root) %{_datadir}/munin/html/cgi/munin-cgi-graph
+%attr(755,munin,root) %dir %{htmldir}
+%attr(644,munin,root) %{htmldir}/.htaccess
+%attr(644,munin,root) %{htmldir}/style.css
+%attr(755,munin,root) %dir %{_datadir}/munin/cgi
+%attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-graph
 %{perl_vendorlib}/Munin.pm
 %{_mandir}/man8/munin-graph*
 %{_mandir}/man8/munin-update*
@@ -180,17 +214,17 @@ fi
 %doc README.api README.plugins ChangeLog
 # %{_docdir}/munin/README.config
 %doc build/doc/*.{html,pdf}
-%dir %{_sysconfdir}/munin
+%dir %{_sysconfdir}
 %dir %{_datadir}/munin
 %attr(750,munin,root) %dir /var/log/munin
 %attr(770,munin,munin) %dir /var/lib/munin
 
 %files node
 %defattr(644,root,root,755)
-%dir %{_sysconfdir}/munin/plugins
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/munin-node.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/plugins.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin/plugin-conf.d/munin-node
+%dir %{_sysconfdir}/plugins
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin-node.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugins.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
 %attr(755,root,root) %{_sbindir}/munin-run
 %attr(755,root,root) %{_sbindir}/munin-node
