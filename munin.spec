@@ -126,6 +126,7 @@ rm -rf $RPM_BUILD_ROOT
 if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
 	%{_sbindir}/munin-node-configure --shell | sh
+	echo "Run \"/etc/rc.d/init.d/munin-node start\" to start Munin Node agent." >&2
 else
 	if [ -f /var/lock/subsys/munin-node ]; then
 		/etc/rc.d/init.d/munin-node restart >&2
