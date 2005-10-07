@@ -103,11 +103,11 @@ install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d}
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 
-install %{SOURCE3} $RPM_BUILD_ROOT/%{_sysconfdir}/apache.conf
+install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/apache.conf
 
 install node/node.d/README README.plugins
 
-install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/
+install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
 
 install server/munin-htaccess $RPM_BUILD_ROOT%{htmldir}/.htaccess
