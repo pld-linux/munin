@@ -14,8 +14,7 @@ Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
 # Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
-Source3:	%{name}-Makefile.config
-Source4:	%{name}-apache.conf
+Source3:	%{name}-apache.conf
 Patch0:		%{name}-Makefile.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	htmldoc
@@ -87,30 +86,22 @@ Munin.
 %prep
 %setup -q
 %patch0 -p1
-install -m644 %{SOURCE3} Makefile.config.pld
 
 %build
 %{__make} clean
-%{__make} build \
-	CONFIG=Makefile.config.pld
+%{__make} build
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d}
-install -d $RPM_BUILD_ROOT%{_sysconfdir}/{plugins,plugin-conf.d}
-install -d $RPM_BUILD_ROOT/var/{lib,log}/munin
-install -d $RPM_BUILD_ROOT%{_datadir}/%{name}/cgi
 
 %{__make} install \
-	CONFIG=Makefile.config.pld \
-	DOCDIR=$RPM_BUILD_ROOT%{_docdir}/munin \
-	MANDIR=$RPM_BUILD_ROOT%{_mandir} \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 
-install %{SOURCE4} $RPM_BUILD_ROOT/%{_sysconfdir}/apache.conf
+install %{SOURCE3} $RPM_BUILD_ROOT/%{_sysconfdir}/apache.conf
 
 install node/node.d/README README.plugins
 
@@ -119,7 +110,6 @@ install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/m
 
 install server/munin-htaccess $RPM_BUILD_ROOT%{htmldir}/.htaccess
 install server/style.css $RPM_BUILD_ROOT%{htmldir}/
-mv -f $RPM_BUILD_ROOT%{htmldir}/cgi/* $RPM_BUILD_ROOT%{_datadir}/%{name}/cgi/
 
 # A hack so rpm won't find deps on perl(DBD::Sybase)
 %if %{without sybase}
