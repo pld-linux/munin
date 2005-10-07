@@ -91,7 +91,6 @@ Munin.
 %patch0 -p1
 
 %build
-%{__make} clean MAKELEVEL=1
 %{__make} build
 
 %install
