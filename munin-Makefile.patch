@@ -60,7 +60,7 @@
  
  # Server only - Where to install the perl libraries
 -PERLLIB    = $(DESTDIR)$(shell $(PERL) -V:sitelib | cut -d= -f2 | sed "s/[\';]//g")
-+PERLLIB    = $(shell $(PERL) -V:vendorlib | cut -d= -f2 | sed "s/[\';]//g")
++PERLLIB    = $(DESTDIR)$(shell $(PERL) -V:vendorlib | cut -d= -f2 | sed "s/[\';]//g")
  
  # Client only - Install plugins for this architecture
  OSTYPE     = $(shell uname | tr '[A-Z]' '[a-z]')
