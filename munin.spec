@@ -20,6 +20,7 @@ URL:		http://munin.sourceforge.net/
 BuildRequires:	htmldoc
 BuildRequires:	html2text
 BuildRequires:	perl-devel
+BuildRequires:	rpmbuild(macros) >= 1.226
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
@@ -161,7 +162,7 @@ fi
 %dir %{_sysconfdir}/templates
 %{_sysconfdir}/templates/*
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apache.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apache.conf
 %attr(755,root,root) %{_sbindir}/munin-cron
 %attr(755,root,root) %{_datadir}/munin/munin-graph
 %attr(755,root,root) %{_datadir}/munin/munin-html
