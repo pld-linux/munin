@@ -23,7 +23,6 @@ BuildRequires:	htmldoc
 BuildRequires:	html2text
 BuildRequires:	perl-devel
 BuildRequires:	rpmbuild(macros) >= 1.226
-BuildRequires:	sed
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
