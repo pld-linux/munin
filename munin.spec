@@ -7,7 +7,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.2
-Release:	0.2
+Release:	1
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
@@ -111,39 +111,20 @@ install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/m
 install server/munin-htaccess $RPM_BUILD_ROOT%{htmldir}/.htaccess
 install server/style.css $RPM_BUILD_ROOT%{htmldir}/
 
-# A hack so rpm won't find deps on perl(DBD::Sybase)
-%if %{without sybase}
-chmod -x $RPM_BUILD_ROOT%{_datadir}/%{name}/plugins/sybase_space
-%endif
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post
-if [ -f /etc/httpd/httpd.conf ] && ! grep -q "^Include.*/etc/%{name}/apache.conf" /etc/httpd/httpd.conf; then
-        echo "Include /etc/%{name}/apache.conf" >> /etc/httpd/httpd.conf
-elif [ -d /etc/httpd/httpd.conf ]; then
-        ln -sf /etc/%{name}/apache.conf /etc/httpd/httpd.conf/99_%{name}.conf
-fi
-if [ -f /var/lock/subsys/httpd ]; then
-        /usr/sbin/apachectl restart 1>&2
-fi
+%triggerin -- apache1 >= 1.3.33-2
+%apache_config_install -v 1 -c %{_sysconfdir}/apache.conf
 
-%preun
-if [ "$1" = "0" ]; then
-        umask 027
-        if [ -d /etc/httpd/httpd.conf ]; then
-                rm -f /etc/httpd/httpd.conf/99_%{name}.conf
-        else
-                grep -v "^Include.*/etc/%{name}/apache.conf" /etc/httpd/httpd.conf > \
-                        /etc/httpd/httpd.conf.tmp
-                mv -f /etc/httpd/httpd.conf.tmp /etc/httpd/httpd.conf
-        fi
+%triggerun -- apache1 >= 1.3.33-2
+%apache_config_uninstall -v 1
 
-        if [ -f /var/lock/subsys/httpd ]; then
-                /usr/sbin/apachectl restart 1>&2
-        fi
-fi
+%triggerin -- apache >= 2.0.0
+%apache_config_install -v 2 -c %{_sysconfdir}/apache.conf
+
+%triggerun -- apache >= 2.0.0
+%apache_config_uninstall -v 2
 
 %post node
 if [ "$1" = "1" ] ; then
@@ -222,6 +203,9 @@ fi
 %attr(755,root,root) %{_sbindir}/munin-node-configure-snmp
 %dir %{_datadir}/munin/plugins
 %attr(755,root,root) %{_datadir}/munin/plugins/*
+%if %{without sybase}
+%exclude %{_datadir}/munin/plugins/sybase_space
+%endif
 %dir %attr(770,munin,munin) /var/lib/munin/plugin-state
 %{_mandir}/man5/munin-node*
 %{_mandir}/man8/munin-run*
