@@ -19,6 +19,7 @@ Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
+Patch2:		%{name}-node-config.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	htmldoc
 BuildRequires:	html2text
@@ -93,6 +94,7 @@ Munin.
 %setup -q
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 %build
 %{__make} build
