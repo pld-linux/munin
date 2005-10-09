@@ -9,7 +9,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.2
-Release:	1
+Release:	1.1
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
@@ -18,6 +18,7 @@ Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
 Patch0:		%{name}-Makefile.patch
+Patch1:		%{name}-plugins.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	htmldoc
 BuildRequires:	html2text
@@ -71,7 +72,9 @@ Summary(pl):	Agent danych RRD Linpro
 Group:		Daemons
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
+Requires:	logtool
 #Requires:	perl-Config-General
+Requires:	perl-Net-Netmask
 Requires:	perl-Net-Server
 Requires:	perl-Net-SNMP
 Requires:	perl-libwww
@@ -89,6 +92,7 @@ Munin.
 %prep
 %setup -q
 %patch0 -p1
+%patch1 -p1
 
 %build
 %{__make} build
@@ -108,7 +112,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/apache.conf
 install node/node.d/README README.plugins
 
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
-install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
+ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
 
 install server/munin-htaccess $RPM_BUILD_ROOT%{htmldir}/.htaccess
 install server/style.css $RPM_BUILD_ROOT%{htmldir}/
@@ -196,8 +200,8 @@ fi
 %defattr(644,root,root,755)
 %dir %{_sysconfdir}/plugins
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin-node.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugins.conf
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugins.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
 %attr(755,root,root) %{_sbindir}/munin-run
 %attr(755,root,root) %{_sbindir}/munin-node
