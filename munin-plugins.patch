@@ -1,7 +1,7 @@
 diff -ur munin-1.3.2/dists/tarball/plugins.conf munin-1.3.2-plugins/dists/tarball/plugins.conf
 --- munin-1.3.2/dists/tarball/plugins.conf	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-plugins/dists/tarball/plugins.conf	2005-10-09 14:06:36.770701544 +0200
-@@ -29,3 +29,40 @@
+@@ -29,3 +29,61 @@
  
  [postfix*]
  user root
@@ -41,6 +41,27 @@ diff -ur munin-1.3.2/dists/tarball/plugins.conf munin-1.3.2-plugins/dists/tarbal
 +
 +[dhcpd3]
 +user root
++
++[ip_*]
++group proc
++
++[munin*]
++user munin
++
++[ping_*]
++group adm
++
++[port_*]
++group proc
++
++[processes]
++group proc
++
++[ps_*]
++group proc
++
++[psu_*]
++group proc
 +
 diff -ur munin-1.3.2/node/node.d/bind9.in munin-1.3.2-plugins/node/node.d/bind9.in
 --- munin-1.3.2/node/node.d/bind9.in	2005-04-15 22:29:18.000000000 +0200
@@ -145,6 +166,83 @@ diff -ur munin-1.3.2/node/node.d.linux/nfs_client.in munin-1.3.2-plugins/node/no
  		echo yes
  		exit 0
  	else
+@@ -30,12 +30,67 @@
+ 	exit 0
+ fi
+ 
+-i=4;
+-
+-for a in $proc; do
+-	echo -n "$a.value "
+-	grep proc3 $NFS \
+-		| cut -f $i -d ' ' \
+-		| awk '{print $1}'
+-	i=$(expr $i + 1)
+-done
++cat $NFS | \
++awk '/proc2/ {
++	nfs_getattr+=$4
++	nfs_setattr+=$5
++	nfs_lookup+=$6
++	nfs_readlink+=$7
++	nfs_read+=$8
++	nfs_write+=$9
++	nfs_create+=$10
++	nfs_mkdir+=$11
++	nfs_symlink+=$12
++	nfs_remove+=$13
++	nfs_rmdir+=$14
++	nfs_rename+=$15
++	nfs_link+=$16
++	nfs_readdir+=$17
++	nfs_fsstat+=$18
++}
++/proc[34]/ {
++	nfs_getattr+=$4
++	nfs_setattr+=$5
++	nfs_lookup+=$6
++	nfs_access+=$7
++	nfs_readlink+=$8
++	nfs_read+=$9
++	nfs_write+=$10
++	nfs_create+=$11
++	nfs_mkdir+=$12
++	nfs_symlink+=$13
++	nfs_mknod+=$14
++	nfs_remove+=$15
++	nfs_rmdir+=$16
++	nfs_rename+=$17
++	nfs_link+=$18
++	nfs_readdir+=$19
++	nfs_readdirplus+=$20
++	nfs_fsstat+=$21
++	nfs_fsinfo+=$22
++	nfs_pathconf+=$23
++	nfs_commit+=$24
++}
++END {
++	print "getattr.value " nfs_getattr
++	print "setattr.value " nfs_setattr
++	print "lookup.value " nfs_lookup
++	print "access.value " nfs_access
++	print "readlink.value " nfs_readlink
++	print "read.value " nfs_read
++	print "write.value " nfs_write
++	print "create.value " nfs_create
++	print "mkdir.value " nfs_mkdir
++	print "symlink.value " nfs_symlink
++	print "mknod.value " nfs_mknod
++	print "remove.value " nfs_remove
++	print "rmdir.value " nfs_rmdir
++	print "rename.value " nfs_rename
++	print "link.value " nfs_link
++	print "readdir.value " nfs_readdir
++	print "readdirplus.value " nfs_readdirplus
++	print "fsstat.value " nfs_fsstat
++	print "fsinfo.value " nfs_fsinfo
++	print "pathconf.value " nfs_pathconf
++	print "commit.value " nfs_commit
++}'
 diff -ur munin-1.3.2/node/node.d.linux/nfsd.in munin-1.3.2-plugins/node/node.d.linux/nfsd.in
 --- munin-1.3.2/node/node.d.linux/nfsd.in	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-plugins/node/node.d.linux/nfsd.in	2005-10-09 14:04:49.220051728 +0200
@@ -157,3 +255,95 @@ diff -ur munin-1.3.2/node/node.d.linux/nfsd.in munin-1.3.2-plugins/node/node.d.l
  		echo yes
  		exit 0
  	else
+@@ -30,12 +30,67 @@
+ 	exit 0
+ fi
+ 
+-i=4;
+-
+-for a in $proc; do
+-	echo -n "$a.value "
+-	grep proc3 $NFSD \
+-		| cut -f $i -d ' ' \
+-		| awk '{print $1}'
+-	i=$(expr $i + 1)
+-done
++cat $NFSD | \
++awk '/proc2/ {
++	nfs_getattr+=$4
++	nfs_setattr+=$5
++	nfs_lookup+=$6
++	nfs_readlink+=$7
++	nfs_read+=$8
++	nfs_write+=$9
++	nfs_create+=$10
++	nfs_mkdir+=$11
++	nfs_symlink+=$12
++	nfs_remove+=$13
++	nfs_rmdir+=$14
++	nfs_rename+=$15
++	nfs_link+=$16
++	nfs_readdir+=$17
++	nfs_fsstat+=$18
++}
++/proc[34]/ {
++	nfs_getattr+=$4
++	nfs_setattr+=$5
++	nfs_lookup+=$6
++	nfs_access+=$7
++	nfs_readlink+=$8
++	nfs_read+=$9
++	nfs_write+=$10
++	nfs_create+=$11
++	nfs_mkdir+=$12
++	nfs_symlink+=$13
++	nfs_mknod+=$14
++	nfs_remove+=$15
++	nfs_rmdir+=$16
++	nfs_rename+=$17
++	nfs_link+=$18
++	nfs_readdir+=$19
++	nfs_readdirplus+=$20
++	nfs_fsstat+=$21
++	nfs_fsinfo+=$22
++	nfs_pathconf+=$23
++	nfs_commit+=$24
++}
++END {
++	print "getattr.value " nfs_getattr
++	print "setattr.value " nfs_setattr
++	print "lookup.value " nfs_lookup
++	print "access.value " nfs_access
++	print "readlink.value " nfs_readlink
++	print "read.value " nfs_read
++	print "write.value " nfs_write
++	print "create.value " nfs_create
++	print "mkdir.value " nfs_mkdir
++	print "symlink.value " nfs_symlink
++	print "mknod.value " nfs_mknod
++	print "remove.value " nfs_remove
++	print "rmdir.value " nfs_rmdir
++	print "rename.value " nfs_rename
++	print "link.value " nfs_link
++	print "readdir.value " nfs_readdir
++	print "readdirplus.value " nfs_readdirplus
++	print "fsstat.value " nfs_fsstat
++	print "fsinfo.value " nfs_fsinfo
++	print "pathconf.value " nfs_pathconf
++	print "commit.value " nfs_commit
++}'
+diff -ur munin-1.3.2/node/node.d/perdition.in munin-1.3.2-plugins/node/node.d/perdition.in
+--- munin-1.3.2/node/node.d/perdition.in	2005-04-15 22:29:18.000000000 +0200
++++ munin-1.3.2-plugins/node/node.d/perdition.in	2005-10-09 18:50:05.680496376 +0200
+@@ -26,9 +26,9 @@
+ 
+ # Set the location of the perdition logs
+ PERDITION_LOG=${logfile:-/var/log/perdition.log}
+-TEMP_FILE=`mktemp -p /tmp/ munin-perdition.XXXXX`
++TEMP_FILE=`mktemp /tmp/munin-perdition.XXXXX`
+ OFFSET_FILE=@@PLUGSTATE@@/perdition.offset
+-LOGTAIL=${logtail:-/usr/sbin/logtail}
++LOGTAIL=${logtail:-`which logtail`}
+ 
+ if [ ! -f "$TEMP_FILE" ]; then
+     exit 3
