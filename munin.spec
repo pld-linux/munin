@@ -80,6 +80,7 @@ Requires:	perl-Net-Server
 Requires:	perl-Net-SNMP
 Requires:	perl-libwww
 Requires:	procps >= 2.0.7
+Requires:	rc-scripts >= 0.4.0.15
 Requires:	sysstat
 
 %description node
