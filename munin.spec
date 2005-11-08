@@ -9,7 +9,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.2
-Release:	1.6
+Release:	2
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
@@ -17,6 +17,7 @@ Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
+Source4:	%{name}.logrotate
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-node-config.patch
@@ -102,13 +103,14 @@ Munin.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d}
+install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d,logrotate.d}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
 
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/apache.conf
 
@@ -198,6 +200,7 @@ fi
 %dir %{_datadir}/munin
 %attr(750,munin,root) %dir /var/log/munin
 %attr(770,munin,munin) %dir /var/lib/munin
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
 
 %files node
 %defattr(644,root,root,755)
