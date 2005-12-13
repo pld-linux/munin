@@ -22,8 +22,8 @@ Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-node-config.patch
 URL:		http://munin.sourceforge.net/
-BuildRequires:	htmldoc
 BuildRequires:	html2text
+BuildRequires:	htmldoc
 BuildRequires:	perl-devel
 BuildRequires:	rpmbuild(macros) >= 1.226
 Requires:	%{name}-common = %{version}-%{release}
@@ -51,12 +51,12 @@ stronach WWW.
 Summary:	Munin - the Linpro RRD data agent - common files
 Summary(pl):	Munin - agent danych RRD Linpro - wspólne pliki
 Group:		Daemons
-Requires(pre):	/usr/bin/getgid
-Requires(pre):	/bin/id
-Requires(pre):	/usr/sbin/groupadd
-Requires(pre):	/usr/sbin/useradd
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
 
 %description common
 Munin, formerly known as The Linpro RRD server, queries a number of
@@ -77,8 +77,8 @@ Requires:	%{name}-common = %{version}-%{release}
 Requires:	logtool
 #Requires:	perl-Config-General
 Requires:	perl-Net-Netmask
-Requires:	perl-Net-Server
 Requires:	perl-Net-SNMP
+Requires:	perl-Net-Server
 Requires:	perl-libwww
 Requires:	procps >= 2.0.7
 Requires:	rc-scripts >= 0.4.0.15
@@ -168,7 +168,7 @@ fi
 
 %files
 %defattr(644,root,root,755)
-%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/cron.d/munin
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/munin
 %dir %{_sysconfdir}/templates
 %{_sysconfdir}/templates/*
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin.conf
