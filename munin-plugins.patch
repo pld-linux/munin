@@ -1,7 +1,7 @@
 diff -ur munin-1.3.2/dists/tarball/plugins.conf munin-1.3.2-plugins/dists/tarball/plugins.conf
 --- munin-1.3.2/dists/tarball/plugins.conf	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-plugins/dists/tarball/plugins.conf	2005-10-09 14:06:36.770701544 +0200
-@@ -29,3 +29,64 @@
+@@ -29,3 +29,68 @@
  
  [postfix*]
  user root
@@ -65,6 +65,10 @@ diff -ur munin-1.3.2/dists/tarball/plugins.conf munin-1.3.2-plugins/dists/tarbal
 +
 +[nfs*]
 +group proc
++
++[nut*]
++env.upsname SmartUPS
++env.upshost 127.0.0.1
 +
 diff -ur munin-1.3.2/node/node.d/bind9.in munin-1.3.2-plugins/node/node.d/bind9.in
 --- munin-1.3.2/node/node.d/bind9.in	2005-04-15 22:29:18.000000000 +0200
@@ -555,3 +559,124 @@ diff -ur munin-1.3.2/node/node.d/mysql_threads.in munin-1.3.2-mysql/node/node.d/
 -/usr/bin/printf "threads.value "
 +/bin/printf "threads.value "
  ($MYSQLADMIN $MYSQLOPTS status 2>/dev/null || echo 'a a a U') | awk '{print $4}'
+--- munin-1.3.2/node/node.d/nut_misc.in.orig	2005-04-15 22:29:18.000000000 +0200
++++ munin-1.3.2/node/node.d/nut_misc.in	2006-01-03 13:55:29.410306984 +0100
+@@ -5,8 +5,9 @@
+ my %status;
+ 
+ my %config = (
+-	upsname => 'bertha@127.0.0.1',
+-	upsc => 'upsc'
++	upsname => $ENV{upsname} || 'bertha',
++	upshost => $ENV{upshost} || '127.0.0.1',
++	upsc => $ENV{upsc} || 'upsc'
+ );
+ 
+ my %graph =  (
+@@ -15,11 +16,6 @@
+ 				type => 'GAUGE',
+ 				draw => 'LINE2'
+ 			 },
+-	'battery_voltage' => {
+-				label => 'batt voltage - V',
+-				type => 'GAUGE',
+-				draw => 'LINE2'
+-			 },
+ 	'battery_runtime' => {
+ 				label => 'runtime - min',
+ 				type => 'GAUGE',
+@@ -43,7 +39,12 @@
+ );
+ 
+ if ( exists $ARGV[0] and $ARGV[0] eq 'config' ) {
+-	print "graph_title UPS Misc - $config{upsname}\n";
++	my $s = $config{upsname};
++	$s =~ s/_/ /g;
++	if ($config{upshost} ne "127.0.0.1" && $config{upshost} ne "localhost") {
++		$s .= " at $config{upshost}";
++	}
++	print "graph_title UPS Misc - $s\n";
+ 	#print "graph_args -l 110\n";
+ 	#print "graph_vlabel Misc\n";
+ 	foreach my $key (keys %graph) {
+@@ -56,7 +57,7 @@
+ }
+ 
+ sub fetch_values {
+-	my $data = `$config{upsc} $config{upsname}`;
++	my $data = `$config{upsc} $config{upsname}\@$config{upshost}`;
+ 	while ($data =~ /([a-z.]+): (.+)\b/g) {
+ 		my $label = $1;
+ 		my $value = $2;
+--- munin-1.3.2/node/node.d/nut_volts.in.orig	2006-01-03 13:16:06.839472344 +0100
++++ munin-1.3.2/node/node.d/nut_volts.in	2006-01-03 13:55:24.970981864 +0100
+@@ -5,8 +5,9 @@
+ my %status;
+ 
+ my %config = (
+-	upsname => 'bertha@127.0.0.1',
+-	upsc => 'upsc'
++	upsname => $ENV{upsname} || 'bertha',
++	upshost => $ENV{upshost} || '127.0.0.1',
++	upsc => $ENV{upsc} || 'upsc'
+ );
+ 
+ my %graph =  (
+@@ -15,16 +16,6 @@
+ 				type => 'GAUGE',
+ 				draw => 'LINE2'
+ 			 },
+-	'input_voltage_maximum' => {
+-				label => 'max input seen',
+-				type => 'GAUGE',
+-				draw => 'LINE1'
+-			 },
+-	'input_voltage_minimum' => {
+-				label => 'min input seen',
+-				type => 'GAUGE',
+-				draw => 'LINE1'
+-			 },
+ 	'output_voltage' => {
+ 				label => 'output',
+ 				type => 'GAUGE',
+@@ -33,7 +24,12 @@
+ );
+ 
+ if ( exists $ARGV[0] and $ARGV[0] eq 'config' ) {
+-	print "graph_title UPS Voltages - $config{upsname}\n";
++	my $s = $config{upsname};
++	$s =~ s/_/ /g;
++	if ($config{upshost} ne "127.0.0.1" && $config{upshost} ne "localhost") {
++		$s .= " at $config{upshost}";
++	}
++	print "graph_title UPS Voltages - $s\n";
+ 	print "graph_args -l 115\n";
+ 	print "graph_vlabel Volts\n";
+ 	foreach my $key (keys %graph) {
+@@ -46,7 +42,7 @@
+ }
+ 
+ sub fetch_values {
+-	my $data = `$config{upsc} $config{upsname}`;
++	my $data = `$config{upsc} $config{upsname}\@$config{upshost}`;
+ 	while ($data =~ /([a-z.]+): (.+)\b/g) {
+ 		my $label = $1;
+ 		my $value = $2;
+--- munin-1.3.2/node/node.d/amavis.in~	2005-04-15 22:29:18.000000000 +0200
++++ munin-1.3.2/node/node.d/amavis.in	2006-01-03 14:00:24.951377912 +0100
+@@ -14,7 +14,6 @@
+ #       amavislog    - file where amavis logs are written
+ #
+ 
+-TEMP_FILE=`mktemp /tmp/lrrd-amavis.XXXXXX`
+ AMAVIS_LOG=${logfile:-/var/log/mail/mail.info}
+ LOGTAIL=${logtail:-`which logtail`}
+ STATEFILE=@@PLUGSTATE@@/amavis.offset
+@@ -56,6 +55,7 @@
+ spamm=U
+ spams=U
+ 
++TEMP_FILE=`mktemp /tmp/lrrd-amavis.XXXXXX`
+ if [ -e $TEMP_FILE -a -f $TEMP_FILE ]
+ then
+ 	if [ $ARGS != 0 ]; then
