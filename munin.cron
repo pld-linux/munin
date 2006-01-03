@@ -4,4 +4,3 @@
 MAILTO=root
 
 */5 * * * *     munin /usr/sbin/munin-cron
-10 10 * * *     munin /usr/share/munin/munin-nagios --removeok
