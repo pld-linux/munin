@@ -9,7 +9,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.2
-Release:	4
+Release:	5
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
@@ -106,6 +106,7 @@ Munin.
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d,logrotate.d}
+install -d $RPM_BUILD_ROOT/var/log/archiv/munin
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -201,6 +202,7 @@ fi
 %dir %{_sysconfdir}
 %dir %{_datadir}/munin
 %attr(750,munin,root) %dir /var/log/munin
+%attr(750,munin,root) %dir /var/log/archiv/munin
 %attr(770,munin,munin) %dir /var/lib/munin
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
 
