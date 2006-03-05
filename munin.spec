@@ -26,7 +26,7 @@ URL:		http://munin.sourceforge.net/
 BuildRequires:	html2text
 BuildRequires:	htmldoc
 BuildRequires:	perl-devel
-BuildRequires:	rpmbuild(macros) >= 1.226
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
@@ -144,18 +144,13 @@ rm -rf $RPM_BUILD_ROOT
 if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
 	%{_sbindir}/munin-node-configure --shell | sh
-	echo "Run \"/etc/rc.d/init.d/munin-node start\" to start Munin Node agent." >&2
-else
-	if [ -f /var/lock/subsys/munin-node ]; then
-		/etc/rc.d/init.d/munin-node restart >&2
-	fi
 fi
+
+%service munin-node restart "Munin Node agent"
 
 %preun node
 if [ "$1" = "0" ] ; then
-	if [ -f /var/lock/subsys/munin-node ]; then
-		/etc/rc.d/init.d/munin-node stop >&2
-	fi
+	%service munin-node stop
 	/sbin/chkconfig --del munin-node
 fi
 
