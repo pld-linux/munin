@@ -128,10 +128,10 @@ install server/style.css $RPM_BUILD_ROOT%{htmldir}/
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%triggerin -- apache1 >= 1.3.33-2
+%triggerin -- apache1 < 1.3.37-3, apache1-base
 %apache_config_install -v 1 -c %{_sysconfdir}/apache.conf
 
-%triggerun -- apache1 >= 1.3.33-2
+%triggerun -- apache1 < 1.3.37-3, apache1-base
 %apache_config_uninstall -v 1
 
 %triggerin -- apache >= 2.0.0
