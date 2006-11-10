@@ -8,12 +8,12 @@
 Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
 Name:		munin
-Version:	1.3.2
-Release:	7
+Version:	1.3.3
+Release:	0.1
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
-# Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
+# Source0-md5:	1e0f72f2092764b72d453f3faf298689
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
@@ -21,7 +21,6 @@ Source4:	%{name}.logrotate
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-node-config.patch
-Patch3:		%{name}-rrdtool12.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	html2text
 BuildRequires:	htmldoc
@@ -98,7 +97,6 @@ Munin.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 
 %build
 %{__make} build
@@ -117,12 +115,9 @@ install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
 
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/apache.conf
 
-install node/node.d/README README.plugins
-
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
 
-install server/munin-htaccess $RPM_BUILD_ROOT%{htmldir}/.htaccess
 install server/style.css $RPM_BUILD_ROOT%{htmldir}/
 
 %clean
@@ -178,9 +173,11 @@ fi
 %attr(755,root,root) %{_datadir}/munin/munin-update
 %attr(755,munin,root) %dir %{htmldir}
 %attr(644,munin,root) %{htmldir}/.htaccess
+%attr(644,munin,root) %{htmldir}/favicon.ico
 %attr(644,munin,root) %{htmldir}/style.css
 %attr(755,munin,root) %dir %{_datadir}/munin/cgi
 %attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-graph
+%{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin.pm
 %{_mandir}/man8/munin-graph*
 %{_mandir}/man8/munin-update*
@@ -191,9 +188,7 @@ fi
 
 %files common
 %defattr(644,root,root,755)
-%doc README.api README.plugins ChangeLog
-# %{_docdir}/munin/README.config
-%doc build/doc/*.{html,pdf}
+%doc README ChangeLog logo* Checklist
 %dir %{_sysconfdir}
 %dir %{_datadir}/munin
 %attr(750,munin,root) %dir /var/log/munin
@@ -212,6 +207,8 @@ fi
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
 %attr(755,root,root) %{_sbindir}/munin-node-configure-snmp
+%dir %{perl_vendorlib}/Munin
+%{perl_vendorlib}/Munin/Plugin.pm
 %dir %{_datadir}/munin/plugins
 %attr(755,root,root) %{_datadir}/munin/plugins/*
 %if %{without sybase}

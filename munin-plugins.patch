@@ -85,18 +85,15 @@ diff -ur munin-1.3.2/node/node.d/bind9.in munin-1.3.2-plugins/node/node.d/bind9.
 diff -ur munin-1.3.2/node/node.d/courier_.in munin-1.3.2-plugins/node/node.d/courier_.in
 --- munin-1.3.2/node/node.d/courier_.in	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-plugins/node/node.d/courier_.in	2005-10-09 13:56:34.916397960 +0200
-@@ -34,9 +34,9 @@
- # Set the location of the courier logs
+@@ -34,7 +34,7 @@
  COURIER_LOG=${logfile:-/var/log/mail.log}
  SERVICE=${service:-`basename $0 | sed 's/^courier_//g'`}
--TEMP_FILE=`mktemp -p /tmp/ munin-courier.XXXXXX`
-+TEMP_FILE=`mktemp /tmp/munin-courier.XXXXXX`
  OFFSET_FILE=@@PLUGSTATE@@/courier_${SERVICE}.offset
 -LOGTAIL=${logtail:-/usr/sbin/logtail}
 +LOGTAIL=${logtail:-`which logtail`}
  
- if [ ! -f "$TEMP_FILE" ]; then
-     exit 3
+ mktempfile () {
+ @@MKTEMP@@
 diff -ur munin-1.3.2/node/node.d/courier_mta_mailstats.in munin-1.3.2-rotlog/node/node.d/courier_mta_mailstats.in
 --- munin-1.3.2/node/node.d/courier_mta_mailstats.in	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-rotlog/node/node.d/courier_mta_mailstats.in	2005-10-10 22:18:45.170285184 +0200
@@ -167,20 +164,6 @@ diff -ur munin-1.3.2/node/node.d/mailman.in munin-1.3.2-plugins/node/node.d/mail
      $pos = 0;
  }
  
-diff -ur munin-1.3.2/node/node.d.linux/fw_forwarded_local.in munin-1.3.2-plugins/node/node.d.linux/fw_forwarded_local.in
---- munin-1.3.2/node/node.d.linux/fw_forwarded_local.in	2005-04-15 22:29:18.000000000 +0200
-+++ munin-1.3.2-plugins/node/node.d.linux/fw_forwarded_local.in	2005-10-09 14:02:02.324423720 +0200
-@@ -39,10 +39,8 @@
- 	echo 'graph_category network'
- 	echo 'forward.label forward'
- 	echo 'forward.type GAUGE'
--	echo 'forward.max 500'''
- 	echo 'local.label local'
- 	echo 'local.type GAUGE'
--	echo 'local.max 500'''
- 	exit 0
- fi
- 
 diff -ur munin-1.3.2/node/node.d.linux/iostat_ios.in munin-1.3.2-plugins/node/node.d.linux/iostat_ios.in
 --- munin-1.3.2/node/node.d.linux/iostat_ios.in	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-plugins/node/node.d.linux/iostat_ios.in	2005-10-09 14:03:10.930993936 +0200
@@ -230,20 +213,18 @@ diff -ur munin-1.3.2/node/node.d.linux/nfs_client.in munin-1.3.2-plugins/node/no
  		echo yes
  		exit 0
  	else
-@@ -30,12 +30,67 @@
+@@ -30,11 +30,66 @@
  	exit 0
  fi
  
--i=4;
+-awk '/proc3/ {
+-    split("'"$proc"'", names)
+-    split($0,values)
+-    for (e in names) {
+-        printf("%s.value %d\n", names[++i], values[i+3]);
+-    }
+-}' $NFS
 -
--for a in $proc; do
--	echo -n "$a.value "
--	grep proc3 $NFS \
--		| cut -f $i -d ' ' \
--		| awk '{print $1}'
--	i=$(expr $i + 1)
--done
-+cat $NFS | \
 +awk '/proc2/ {
 +	nfs_getattr+=$4
 +	nfs_setattr+=$5
@@ -306,7 +287,7 @@ diff -ur munin-1.3.2/node/node.d.linux/nfs_client.in munin-1.3.2-plugins/node/no
 +	print "fsinfo.value " nfs_fsinfo
 +	print "pathconf.value " nfs_pathconf
 +	print "commit.value " nfs_commit
-+}'
++}' $NFS
 diff -ur munin-1.3.2/node/node.d.linux/nfsd.in munin-1.3.2-plugins/node/node.d.linux/nfsd.in
 --- munin-1.3.2/node/node.d.linux/nfsd.in	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-plugins/node/node.d.linux/nfsd.in	2005-10-09 14:04:49.220051728 +0200
@@ -314,25 +295,21 @@ diff -ur munin-1.3.2/node/node.d.linux/nfsd.in munin-1.3.2-plugins/node/node.d.l
  proc="getattr setattr lookup access readlink read write create mkdir symlink mknod remove rmdir rename link readdir readdirplus fsstat fsinfo pathconf commit"
  
  if [ "$1" = "autoconf" ]; then
--	if [ -x "$NFSD" ]; then
+-	if [ -f "$NFSD" ]; then
 +	if [ -r "$NFSD" ]; then
  		echo yes
  		exit 0
  	else
-@@ -30,12 +30,67 @@
+@@ -30,9 +30,66 @@
  	exit 0
  fi
  
--i=4;
--
--for a in $proc; do
--	echo -n "$a.value "
--	grep proc3 $NFSD \
--		| cut -f $i -d ' ' \
--		| awk '{print $1}'
--	i=$(expr $i + 1)
--done
-+cat $NFSD | \
+-awk '/proc3/ {
+-    split("'"$proc"'", names)
+-    split($0,values)
+-    for (e in names)
+-        printf("%s.value %d\n", names[++i], values[i+3]);
+-  }' $NFSD
 +awk '/proc2/ {
 +	nfs_getattr+=$4
 +	nfs_setattr+=$5
@@ -395,16 +372,13 @@ diff -ur munin-1.3.2/node/node.d.linux/nfsd.in munin-1.3.2-plugins/node/node.d.l
 +	print "fsinfo.value " nfs_fsinfo
 +	print "pathconf.value " nfs_pathconf
 +	print "commit.value " nfs_commit
-+}'
++}' $NFSD
 diff -ur munin-1.3.2/node/node.d/perdition.in munin-1.3.2-plugins/node/node.d/perdition.in
 --- munin-1.3.2/node/node.d/perdition.in	2005-04-15 22:29:18.000000000 +0200
 +++ munin-1.3.2-plugins/node/node.d/perdition.in	2005-10-09 18:50:05.680496376 +0200
-@@ -26,9 +26,9 @@
- 
+@@ -26,7 +26,7 @@
  # Set the location of the perdition logs
  PERDITION_LOG=${logfile:-/var/log/perdition.log}
--TEMP_FILE=`mktemp -p /tmp/ munin-perdition.XXXXX`
-+TEMP_FILE=`mktemp /tmp/munin-perdition.XXXXX`
  OFFSET_FILE=@@PLUGSTATE@@/perdition.offset
 -LOGTAIL=${logtail:-/usr/sbin/logtail}
 +LOGTAIL=${logtail:-`which logtail`}
@@ -449,20 +423,6 @@ diff -ur munin-1.3.2/node/node.d/postfix_mailvolume.in munin-1.3.2-rotlog/node/n
 -    parseLogfile ($rotlogfile, $pos, (stat $rotlogfile)[7]);
 +    if (-f $rotlogfile) {
 +        parseLogfile ($rotlogfile, $pos, (stat $rotlogfile)[7]);
-+    }
-     $pos = 0;
- }
- 
-diff -ur munin-1.3.2/node/node.d/spamstats.in munin-1.3.2-rotlog/node/node.d/spamstats.in
---- munin-1.3.2/node/node.d/spamstats.in	2005-04-15 22:29:18.000000000 +0200
-+++ munin-1.3.2-rotlog/node/node.d/spamstats.in	2005-10-10 22:21:26.427770320 +0200
-@@ -72,7 +72,9 @@
- if ($startsize < $pos)
- {
-     # Log rotated
--    parselogfile ($rotlogfile, $pos, (stat $rotlogfile)[7]);
-+    if (-f $rotlogfile) {
-+        parselogfile ($rotlogfile, $pos, (stat $rotlogfile)[7]);
 +    }
      $pos = 0;
  }
@@ -588,7 +548,7 @@ diff -ur munin-1.3.2/node/node.d/mysql_threads.in munin-1.3.2-mysql/node/node.d/
 @@ -43,7 +39,12 @@
  );
  
- if ( exists $ARGV[0] and $ARGV[0] eq 'config' ) {
+ if ( defined $ARGV[0] and $ARGV[0] eq 'config' ) {
 -	print "graph_title UPS Misc - $config{upsname}\n";
 +	my $s = $config{upsname};
 +	$s =~ s/_/ /g;
@@ -642,7 +602,7 @@ diff -ur munin-1.3.2/node/node.d/mysql_threads.in munin-1.3.2-mysql/node/node.d/
 @@ -33,7 +24,12 @@
  );
  
- if ( exists $ARGV[0] and $ARGV[0] eq 'config' ) {
+ if ( defined $ARGV[0] and $ARGV[0] eq 'config' ) {
 -	print "graph_title UPS Voltages - $config{upsname}\n";
 +	my $s = $config{upsname};
 +	$s =~ s/_/ /g;
@@ -662,21 +622,3 @@ diff -ur munin-1.3.2/node/node.d/mysql_threads.in munin-1.3.2-mysql/node/node.d/
  	while ($data =~ /([a-z.]+): (.+)\b/g) {
  		my $label = $1;
  		my $value = $2;
---- munin-1.3.2/node/node.d/amavis.in~	2005-04-15 22:29:18.000000000 +0200
-+++ munin-1.3.2/node/node.d/amavis.in	2006-01-03 14:00:24.951377912 +0100
-@@ -14,7 +14,6 @@
- #       amavislog    - file where amavis logs are written
- #
- 
--TEMP_FILE=`mktemp /tmp/lrrd-amavis.XXXXXX`
- AMAVIS_LOG=${logfile:-/var/log/mail/mail.info}
- LOGTAIL=${logtail:-`which logtail`}
- STATEFILE=@@PLUGSTATE@@/amavis.offset
-@@ -56,6 +55,7 @@
- spamm=U
- spams=U
- 
-+TEMP_FILE=`mktemp /tmp/lrrd-amavis.XXXXXX`
- if [ -e $TEMP_FILE -a -f $TEMP_FILE ]
- then
- 	if [ $ARGS != 0 ]; then
