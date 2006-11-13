@@ -628,3 +628,51 @@ diff -ur munin-1.3.2/node/node.d/mysql_threads.in munin-1.3.2-mysql/node/node.d/
  	while ($data =~ /([a-z.]+): (.+)\b/g) {
  		my $label = $1;
  		my $value = $2;
+--- munin-1.3.3/node/node.d/ntp_.in~	2006-11-10 13:39:13.000000000 +0100
++++ munin-1.3.3/node/node.d/ntp_.in	2006-11-13 15:05:27.000000000 +0100
+@@ -25,9 +25,9 @@
+ use Socket;
+ 
+ if ($ARGV[0] and $ARGV[0] eq "autoconf") {
+-	`ntpq -c help >/dev/null 2>/dev/null`;
++	`/usr/sbin/ntpq -c help >/dev/null 2>/dev/null`;
+ 	if ($? eq "0") {
+-		if (`ntpq -c "hostnames no" -c peers | wc -l` > 0) {
++		if (`/usr/sbin/ntpq -c "hostnames no" -c peers | wc -l` > 0) {
+ 			print "yes\n";
+ 			exit 0;
+ 		} else {
+@@ -35,13 +35,13 @@
+ 			exit 1;
+ 		}
+ 	} else {
+-		print "no (ntpq not found)\n";
++		print "no (/usr/sbin/ntpq not found)\n";
+ 		exit 1;
+ 	}
+ }
+ 
+ if ($ARGV[0] and $ARGV[0] eq "suggest") {
+-	my @lines = `ntpq -c "hostnames no" -c peers`;
++	my @lines = `/usr/sbin/ntpq -c "hostnames no" -c peers`;
+ 	foreach (@lines) {
+ 		next unless /^.(\d+\.\d+\.\d+\.\d+)/;
+ 		next if /^.224\.0\.1\.1/;
+@@ -61,7 +61,7 @@
+ exit 2 unless defined $name;
+ 
+ if ($ARGV[0] and $ARGV[0] eq "config") {
+-	my @lines = `ntpq -c "hostnames no" -c peers`;
++	my @lines = `/usr/sbin/ntpq -c "hostnames no" -c peers`;
+ 	my $host;
+ 	foreach (@lines) {
+ 		next unless /^.(\d+\.\d+\.\d+\.\d+)/;
+@@ -89,7 +89,7 @@
+         exit 0;
+ }
+ 
+-my @lines = `ntpq -c "hostnames no" -c peers`;
++my @lines = `/usr/sbin/ntpq -c "hostnames no" -c peers`;
+ foreach (@lines) {
+ 	next unless /^.(\d+\.\d+\.\d+\.\d+)/;
+ 	next if /^.224\.0\.1\.1/;
