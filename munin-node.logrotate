@@ -1,0 +1,7 @@
+/var/log/munin/munin-node.log {
+	olddir /var/log/archiv/munin
+	create 640 munin root
+	postrotate
+		/bin/killall -q -HUP munin-node
+	endscript
+}
