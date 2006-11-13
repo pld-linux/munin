@@ -211,7 +211,7 @@ fi
 %{perl_vendorlib}/Munin/Plugin.pm
 %dir %{_datadir}/munin/plugins
 %attr(755,root,root) %{_datadir}/munin/plugins/*
-%if %{without sybase}
+%if !%{with sybase}
 %exclude %{_datadir}/munin/plugins/sybase_space
 %endif
 %dir %attr(770,munin,munin) /var/lib/munin/plugin-state
