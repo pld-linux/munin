@@ -9,7 +9,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.3
-Release:	0.1
+Release:	0.2
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
@@ -18,6 +18,7 @@ Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
 Source4:	%{name}.logrotate
+Source5:	%{name}-node.logrotate
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-node-config.patch
@@ -112,6 +113,7 @@ install -d $RPM_BUILD_ROOT/var/log/archiv/munin
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
+install %{SOURCE5} $RPM_BUILD_ROOT/etc/logrotate.d/munin-node
 
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/apache.conf
 
@@ -165,6 +167,7 @@ fi
 %dir %{_sysconfdir}/templates
 %{_sysconfdir}/templates/*
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apache.conf
 %attr(755,root,root) %{_sbindir}/munin-cron
 %attr(755,root,root) %{_datadir}/munin/munin-graph
@@ -194,7 +197,6 @@ fi
 %attr(750,munin,root) %dir /var/log/munin
 %attr(750,munin,root) %dir /var/log/archiv/munin
 %attr(770,munin,munin) %dir /var/lib/munin
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
 
 %files node
 %defattr(644,root,root,755)
@@ -202,6 +204,7 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin-node.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugins.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin-node
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
 %attr(755,root,root) %{_sbindir}/munin-run
 %attr(755,root,root) %{_sbindir}/munin-node
