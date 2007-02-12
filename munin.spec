@@ -6,7 +6,7 @@
 #
 %include	/usr/lib/rpm/macros.perl
 Summary:	Munin - the Linpro RRD data agent
-Summary(pl):	Munin - agent danych RRD Linpro
+Summary(pl.UTF-8):   Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.3
 Release:	0.2
@@ -43,14 +43,14 @@ Munin, formerly known as The Linpro RRD server, queries a number of
 nodes, and processes the data using RRDtool and presents it on web
 pages.
 
-%description -l pl
-Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wêz³ów
-i przetwarza dane przy u¿yciu RRDtoola, a nastêpnie prezentuje je na
+%description -l pl.UTF-8
+Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wÄ™zÅ‚Ã³w
+i przetwarza dane przy uÅ¼yciu RRDtoola, a nastÄ™pnie prezentuje je na
 stronach WWW.
 
 %package common
 Summary:	Munin - the Linpro RRD data agent - common files
-Summary(pl):	Munin - agent danych RRD Linpro - wspólne pliki
+Summary(pl.UTF-8):   Munin - agent danych RRD Linpro - wspÃ³lne pliki
 Group:		Daemons
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -64,14 +64,14 @@ Munin, formerly known as The Linpro RRD server, queries a number of
 nodes, and processes the data using RRDtool and presents it on web
 pages.
 
-%description common -l pl
-Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wêz³ów
-i przetwarza dane przy u¿yciu RRDtoola, a nastêpnie prezentuje je na
+%description common -l pl.UTF-8
+Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wÄ™zÅ‚Ã³w
+i przetwarza dane przy uÅ¼yciu RRDtoola, a nastÄ™pnie prezentuje je na
 stronach WWW.
 
 %package node
 Summary:	Linpro RRD data agent
-Summary(pl):	Agent danych RRD Linpro
+Summary(pl.UTF-8):   Agent danych RRD Linpro
 Group:		Daemons
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
@@ -89,8 +89,8 @@ Requires:	sysstat
 The Munin node package returns statistical data on the request of a
 Munin server.
 
-%description node -l pl
-Pakiet Munin dla wêz³a zwraca dane statystyczne na ¿±danie serwera
+%description node -l pl.UTF-8
+Pakiet Munin dla wÄ™zÅ‚a zwraca dane statystyczne na Å¼Ä…danie serwera
 Munin.
 
 %prep
