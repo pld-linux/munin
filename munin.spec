@@ -6,7 +6,7 @@
 #
 %include	/usr/lib/rpm/macros.perl
 Summary:	Munin - the Linpro RRD data agent
-Summary(pl.UTF-8):   Munin - agent danych RRD Linpro
+Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.3
 Release:	0.2
@@ -50,7 +50,7 @@ stronach WWW.
 
 %package common
 Summary:	Munin - the Linpro RRD data agent - common files
-Summary(pl.UTF-8):   Munin - agent danych RRD Linpro - wspólne pliki
+Summary(pl.UTF-8):	Munin - agent danych RRD Linpro - wspólne pliki
 Group:		Daemons
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -71,7 +71,7 @@ stronach WWW.
 
 %package node
 Summary:	Linpro RRD data agent
-Summary(pl.UTF-8):   Agent danych RRD Linpro
+Summary(pl.UTF-8):	Agent danych RRD Linpro
 Group:		Daemons
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
