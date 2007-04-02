@@ -105,7 +105,7 @@ Munin.
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d,logrotate.d}
-install -d $RPM_BUILD_ROOT/var/log/archiv/munin
+install -d $RPM_BUILD_ROOT/var/log/archive/munin
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -195,7 +195,7 @@ fi
 %dir %{_sysconfdir}
 %dir %{_datadir}/munin
 %attr(750,munin,root) %dir /var/log/munin
-%attr(750,munin,root) %dir /var/log/archiv/munin
+%attr(750,munin,root) %dir /var/log/archive/munin
 %attr(770,munin,munin) %dir /var/lib/munin
 
 %files node
