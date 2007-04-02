@@ -2,6 +2,6 @@
 /var/log/munin/munin-html.log
 /var/log/munin/munin-limits.log
 /var/log/munin/munin-update.log {
-	olddir /var/log/archiv/munin
+	olddir /var/log/archive/munin
 	create 640 munin root
 }
