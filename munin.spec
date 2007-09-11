@@ -32,6 +32,7 @@ Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
 Requires:	rrdtool >= 1.2.11
+Conflicts:	logrotate < 3.7.4
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -84,6 +85,7 @@ Requires:	perl-libwww
 Requires:	procps >= 2.0.7
 Requires:	rc-scripts >= 0.4.0.15
 Requires:	sysstat
+Conflicts:	logrotate < 3.7.4
 
 %description node
 The Munin node package returns statistical data on the request of a
