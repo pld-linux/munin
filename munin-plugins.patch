@@ -43,7 +43,7 @@ diff -ur munin-1.3.2/dists/tarball/plugins.conf munin-1.3.2-plugins/dists/tarbal
 +user root
 +
 +[ip_*]
-+group proc
++user root
 +
 +[munin*]
 +user munin
