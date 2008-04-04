@@ -6,32 +6,33 @@
 #
 %include	/usr/lib/rpm/macros.perl
 Summary:	Munin - the Linpro RRD data agent
-Summary(pl):	Munin - agent danych RRD Linpro
+Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
-Version:	1.3.2
-Release:	4
+Version:	1.3.4
+Release:	1
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
-# Source0-md5:	9eef4a53626cee0e088391c5deb8bd51
+# Source0-md5:	e3a58e582407981d4f5c5aed59cbfc47
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
 Source4:	%{name}.logrotate
+Source5:	%{name}-node.logrotate
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-node-config.patch
-Patch3:		%{name}-rrdtool12.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	html2text
 BuildRequires:	htmldoc
 BuildRequires:	perl-devel
-BuildRequires:	rpmbuild(macros) >= 1.226
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
 Requires:	rrdtool >= 1.2.11
+Conflicts:	logrotate < 3.7-4
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -43,14 +44,14 @@ Munin, formerly known as The Linpro RRD server, queries a number of
 nodes, and processes the data using RRDtool and presents it on web
 pages.
 
-%description -l pl
-Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wêz³ów
-i przetwarza dane przy u¿yciu RRDtoola, a nastêpnie prezentuje je na
+%description -l pl.UTF-8
+Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wÄ™zÅ‚Ã³w
+i przetwarza dane przy uÅ¼yciu RRDtoola, a nastÄ™pnie prezentuje je na
 stronach WWW.
 
 %package common
 Summary:	Munin - the Linpro RRD data agent - common files
-Summary(pl):	Munin - agent danych RRD Linpro - wspólne pliki
+Summary(pl.UTF-8):	Munin - agent danych RRD Linpro - wspÃ³lne pliki
 Group:		Daemons
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
@@ -64,14 +65,14 @@ Munin, formerly known as The Linpro RRD server, queries a number of
 nodes, and processes the data using RRDtool and presents it on web
 pages.
 
-%description common -l pl
-Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wêz³ów
-i przetwarza dane przy u¿yciu RRDtoola, a nastêpnie prezentuje je na
+%description common -l pl.UTF-8
+Munin, znany poprzednio jako serwer RRD Linpro, odpytuje wiele wÄ™zÅ‚Ã³w
+i przetwarza dane przy uÅ¼yciu RRDtoola, a nastÄ™pnie prezentuje je na
 stronach WWW.
 
 %package node
 Summary:	Linpro RRD data agent
-Summary(pl):	Agent danych RRD Linpro
+Summary(pl.UTF-8):	Agent danych RRD Linpro
 Group:		Daemons
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
@@ -84,13 +85,14 @@ Requires:	perl-libwww
 Requires:	procps >= 2.0.7
 Requires:	rc-scripts >= 0.4.0.15
 Requires:	sysstat
+Conflicts:	logrotate < 3.7-4
 
 %description node
 The Munin node package returns statistical data on the request of a
 Munin server.
 
-%description node -l pl
-Pakiet Munin dla wêz³a zwraca dane statystyczne na ¿±danie serwera
+%description node -l pl.UTF-8
+Pakiet Munin dla wÄ™zÅ‚a zwraca dane statystyczne na Å¼Ä…danie serwera
 Munin.
 
 %prep
@@ -98,7 +100,6 @@ Munin.
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
-%patch3 -p1
 
 %build
 %{__make} build
@@ -106,6 +107,7 @@ Munin.
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d,logrotate.d}
+install -d $RPM_BUILD_ROOT/var/log/archive/munin
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -113,24 +115,22 @@ install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d,logrotate.d}
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
+install %{SOURCE5} $RPM_BUILD_ROOT/etc/logrotate.d/munin-node
 
 install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/apache.conf
-
-install node/node.d/README README.plugins
 
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
 
-install server/munin-htaccess $RPM_BUILD_ROOT%{htmldir}/.htaccess
 install server/style.css $RPM_BUILD_ROOT%{htmldir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%triggerin -- apache1 >= 1.3.33-2
+%triggerin -- apache1 < 1.3.37-3, apache1-base
 %apache_config_install -v 1 -c %{_sysconfdir}/apache.conf
 
-%triggerun -- apache1 >= 1.3.33-2
+%triggerun -- apache1 < 1.3.37-3, apache1-base
 %apache_config_uninstall -v 1
 
 %triggerin -- apache >= 2.0.0
@@ -143,18 +143,13 @@ rm -rf $RPM_BUILD_ROOT
 if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
 	%{_sbindir}/munin-node-configure --shell | sh
-	echo "Run \"/etc/rc.d/init.d/munin-node start\" to start Munin Node agent." >&2
-else
-	if [ -f /var/lock/subsys/munin-node ]; then
-		/etc/rc.d/init.d/munin-node restart >&2
-	fi
 fi
+
+%service munin-node restart "Munin Node agent"
 
 %preun node
 if [ "$1" = "0" ] ; then
-	if [ -f /var/lock/subsys/munin-node ]; then
-		/etc/rc.d/init.d/munin-node stop >&2
-	fi
+	%service munin-node stop
 	/sbin/chkconfig --del munin-node
 fi
 
@@ -174,6 +169,7 @@ fi
 %dir %{_sysconfdir}/templates
 %{_sysconfdir}/templates/*
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apache.conf
 %attr(755,root,root) %{_sbindir}/munin-cron
 %attr(755,root,root) %{_datadir}/munin/munin-graph
@@ -182,9 +178,11 @@ fi
 %attr(755,root,root) %{_datadir}/munin/munin-update
 %attr(755,munin,root) %dir %{htmldir}
 %attr(644,munin,root) %{htmldir}/.htaccess
+%attr(644,munin,root) %{htmldir}/favicon.ico
 %attr(644,munin,root) %{htmldir}/style.css
 %attr(755,munin,root) %dir %{_datadir}/munin/cgi
 %attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-graph
+%{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin.pm
 %{_mandir}/man8/munin-graph*
 %{_mandir}/man8/munin-update*
@@ -195,29 +193,31 @@ fi
 
 %files common
 %defattr(644,root,root,755)
-%doc README.api README.plugins ChangeLog
-# %{_docdir}/munin/README.config
-%doc build/doc/*.{html,pdf}
+%doc README ChangeLog logo* Checklist
 %dir %{_sysconfdir}
 %dir %{_datadir}/munin
 %attr(750,munin,root) %dir /var/log/munin
+%attr(750,munin,root) %dir /var/log/archive/munin
 %attr(770,munin,munin) %dir /var/lib/munin
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
 
 %files node
 %defattr(644,root,root,755)
 %dir %{_sysconfdir}/plugins
+%dir %{_sysconfdir}/plugin-conf.d
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin-node.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugins.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin-node
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
 %attr(755,root,root) %{_sbindir}/munin-run
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
 %attr(755,root,root) %{_sbindir}/munin-node-configure-snmp
+%dir %{perl_vendorlib}/Munin
+%{perl_vendorlib}/Munin/Plugin.pm
 %dir %{_datadir}/munin/plugins
 %attr(755,root,root) %{_datadir}/munin/plugins/*
-%if %{without sybase}
+%if !%{with sybase}
 %exclude %{_datadir}/munin/plugins/sybase_space
 %endif
 %dir %attr(770,munin,munin) /var/lib/munin/plugin-state
