@@ -101,7 +101,7 @@ Munin.
 %patch1 -p1
 %patch2 -p1
 
-%if "%{_lib}" == "lib64"
+%if "%{_lib}" != "lib"
 sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' node/node.d/mailman.in
 %endif
 
