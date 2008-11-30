@@ -9,7 +9,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.4
-Release:	3
+Release:	4
 License:	GPL
 Group:		Daemons
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
@@ -23,16 +23,18 @@ Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-node-config.patch
 Patch3:		%{name}-group_order.patch
+Patch4:		%{name}-rrdtool-font.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	html2text
 BuildRequires:	htmldoc
 BuildRequires:	perl-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
 Requires:	%{name}-common = %{version}-%{release}
+Requires:	fonts-TTF-bitstream-vera
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
-Requires:	rrdtool >= 1.2.11
+Requires:	rrdtool >= 1.3.0
 Conflicts:	logrotate < 3.7-4
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -102,6 +104,7 @@ Munin.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p0
+%patch4 -p1
 
 %if "%{_lib}" != "lib"
 sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' node/node.d/mailman.in
@@ -188,7 +191,6 @@ fi
 %attr(644,munin,root) %{htmldir}/style.css
 %attr(755,munin,root) %dir %{_datadir}/munin/cgi
 %attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-graph
-%{_datadir}/munin/VeraMono.ttf
 %{perl_vendorlib}/Munin.pm
 %{_mandir}/man8/munin-graph*
 %{_mandir}/man8/munin-update*
