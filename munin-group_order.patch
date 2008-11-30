@@ -1,0 +1,110 @@
+Index: server/munin-html.in
+===================================================================
+--- server/munin-html.in	(revision 1610)
++++ server/munin-html.in	(revision 1611)
+@@ -124,13 +124,6 @@
+ 	                    year => HTML::Template->new(filename => "$config->{tmpldir}/munin-comparison-year.tmpl", die_on_bad_params => 0, loop_context_vars => 1)
+ 			  );
+ 
+-my @domains;
+-
+-my @domainorder;
+-if ($config->{domain_order}) {
+-    @domainorder = split /\s+/, $config->{domain_order};
+-}
+-
+ #Make sure the logo and the stylesheet file is in the html dir
+ my @files = ("style.css", "logo.png", "definitions.html");
+ foreach my $file( (@files) ) {
+@@ -159,6 +152,8 @@
+ 				   die_on_bad_params => 0,
+ 				   loop_context_vars => 1);
+ 
++generate_group_templates ($groups);
++
+ $template->param(GROUPS    => $groups,
+ 		 TIMESTAMP => $timestamp);
+ my $filename = munin_get_html_filename ($config);
+@@ -167,8 +162,6 @@
+ print FILE $template->output;
+ close FILE;
+ 
+-generate_group_templates ($groups);
+-
+ munin_removelock("$config->{rundir}/munin-html.lock");
+ 
+ sub logger_open {
+@@ -328,7 +321,10 @@
+     my $visible = 0;
+     my $csspath;
+ 
+-    foreach my $child (@{munin_get_children ($hash)}) {
++    my $children = munin_get_children ($hash);
++    $children = sort_order ($children, $hash->{'group_order'});
++
++    foreach my $child (@$children) {
+ 	next unless defined $child and ref ($child) eq "HASH" and keys %$child;
+ 	if (defined $child->{"graph_title"} and munin_get_bool ($child, "graph", 1)) {
+ 	    my $childname = munin_get_node_name ($child);
+@@ -439,6 +435,31 @@
+     return $ret;
+ }
+ 
++sub sort_order {
++    my $arr = shift || return undef;
++    my $group_order = shift || "";
++    my $ret = [];
++
++    my %hash = map { munin_get_node_name ($_) => $_ } @$arr;
++
++    foreach my $group (split /\s+/, $group_order) {
++        if (defined $hash{$group}) {
++	    logger ("DEBUG: sort_order: Adding pre $group") if $DEBUG;
++	    push @$ret, $hash{$group};
++	    delete $hash{$group};
++	}
++    }
++
++    foreach my $group (sort { $a cmp $b } keys %hash) {
++        push @$ret, $hash{$group};
++        logger ("DEBUG: sort_order: Adding post $group") if $DEBUG;
++    }
++
++    logger ("DEBUG: sort_order: " . join (' ', map { $_->{'name'} } @$ret)) if $DEBUG;
++
++    return $ret;
++}
++
+ sub generate_group_templates {
+     my $arr = shift || return undef;
+     return undef unless ref ($arr) eq "ARRAY";
+@@ -448,6 +469,7 @@
+ 	    $key->{'peers'} = get_peer_nodes ($key->{'hashnode'});
+ 	    delete $key->{'hashnode'}; # This was only kept there for getting the peers
+ 	    if (defined $key->{'ngroups'} and $key->{'ngroups'}) {
++	    	$key->{'groups'} = $key->{'groups'};
+ 		generate_group_templates ($key->{'groups'});
+ 
+ 		my $grouptemplate = HTML::Template->new(
+@@ -761,7 +783,7 @@
+ 
+ =head1 COPYRIGHT
+ 
+-Copyright (C) 2002-2006 Knut Haugen, Audun Ytterdal, and Jimmy Olsen /
++Copyright (C) 2002-2008 Knut Haugen, Audun Ytterdal, and Jimmy Olsen /
+ Linpro AS.
+ 
+ This is free software; see the source for copying conditions. There is
+Index: server/Munin.pm.in
+===================================================================
+--- server/Munin.pm.in	(revision 1610)
++++ server/Munin.pm.in	(revision 1611)
+@@ -99,7 +99,7 @@
+ 	"tls_verify_certificate", "tls_verify_depth", "tls_ca_certificate",
+ 	"graph_data_size", "colour", "graph_printf", "ok", "unknown",
+ 	 "palette", "realservname", "cdef_name", "graphable", "process", 
+-	 "realname"
++	 "realname", "group_order"
+     );
+ 
+ my %legal_expanded = map { $_ => 1 } @legal;
