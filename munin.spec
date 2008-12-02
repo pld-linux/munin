@@ -25,6 +25,7 @@ Patch2:		%{name}-node-config.patch
 Patch3:		%{name}-group_order.patch
 Patch4:		%{name}-rrdtool-font.patch
 URL:		http://munin.sourceforge.net/
+BuildRequires:	migrate-to-webapps
 BuildRequires:	html2text
 BuildRequires:	htmldoc
 BuildRequires:	perl-devel
