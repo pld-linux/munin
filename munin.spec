@@ -29,6 +29,7 @@ BuildRequires:	html2text
 BuildRequires:	htmldoc
 BuildRequires:	perl-devel
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	perl-Net-SNMP
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	fonts-TTF-bitstream-vera
 Requires:	perl-Date-Manip
