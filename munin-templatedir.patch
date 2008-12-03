@@ -1,0 +1,100 @@
+diff -ur munin-1.3.4/contrib/munin-every-services-all-boxes-build-html.in munin-1.3.4.conf/contrib/munin-every-services-all-boxes-build-html.in
+--- munin-1.3.4/contrib/munin-every-services-all-boxes-build-html.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4.conf/contrib/munin-every-services-all-boxes-build-html.in	2008-12-03 23:43:55.000000000 +0100
+@@ -23,7 +23,7 @@
+ 
+   chown @@USER@@.@@GROUP@@ @@HTMLDIR@@/every-services-all-boxes
+ 
+-in @@CONFDIR@@/templates/munin-overview.tmpl:
++in @@TEMPLATEDIR@@/munin-overview.tmpl:
+ 
+  <div class="box">
+     <a href=every-services-all-boxes>every services on all boxes</a>
+diff -ur munin-1.3.4/Makefile munin-1.3.4.conf/Makefile
+--- munin-1.3.4/Makefile	2008-12-03 23:42:52.000000000 +0100
++++ munin-1.3.4.conf/Makefile	2008-12-03 23:46:04.000000000 +0100
+@@ -33,7 +33,7 @@
+ 
+ install-main: build
+ 	$(CHECKUSER)
+-	mkdir -p $(CONFDIR)/templates
++	mkdir -p $(TEMPLATEDIR)
+ 	mkdir -p $(LIBDIR)
+ 	mkdir -p $(BINDIR)
+ 	mkdir -p $(SBINDIR)
+@@ -48,11 +48,11 @@
+ 	$(CHOWN) $(USER) $(LOGDIR) $(STATEDIR) $(RUNDIR) $(HTMLDIR) $(DBDIR)
+ 
+ 	for p in build/server/*.tmpl; do    		         \
+-		$(INSTALL) -m 0644 "$$p" $(CONFDIR)/templates/ ; \
++		$(INSTALL) -m 0644 "$$p" $(TEMPLATEDIR)/ ; \
+ 	done
+-	$(INSTALL) -m 0644 server/logo.png $(CONFDIR)/templates/
+-	$(INSTALL) -m 0644 server/style.css $(CONFDIR)/templates/
+-	$(INSTALL) -m 0644 server/definitions.html $(CONFDIR)/templates/
++	$(INSTALL) -m 0644 server/logo.png $(TEMPLATEDIR)/
++	$(INSTALL) -m 0644 server/style.css $(TEMPLATEDIR)/
++	$(INSTALL) -m 0644 server/definitions.html $(TEMPLATEDIR)/
+ 	$(INSTALL) -m 0755 server/VeraMono.ttf $(LIBDIR)/
+ 	$(INSTALL) -m 0644 resources/favicon.ico $(HTMLDIR)/
+ 	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/server/munin-htaccess $(HTMLDIR)/.htaccess
+@@ -68,11 +68,11 @@
+ 
+ uninstall-main: build
+ 	for p in build/server/*.tmpl; do    	    \
+-		rm -f $(CONFDIR)/templates/"$$p"  ; \
++		rm -f $(TEMPLATEDIR)/"$$p"  ; \
+ 	done
+-	rm -f $(CONFDIR)/templates/logo.png
+-	rm -f $(CONFDIR)/templates/style.css
+-	rm -f $(CONFDIR)/templates/definitions.html
++	rm -f $(TEMPLATEDIR)/logo.png
++	rm -f $(TEMPLATEDIR)/style.css
++	rm -f $(TEMPLATEDIR)/definitions.html
+ 	rm -f $(HTMLDIR)/.htaccess
+ 
+ 	rm -f $(CONFDIR)/munin.conf 
+@@ -87,7 +87,7 @@
+ 	rm -f $(CGIDIR)/munin-cgi-graph
+ 
+ 	rm -f $(PERLLIB)/Munin.pm 
+-	-rmdir $(CONFDIR)/templates
++	-rmdir $(TEMPLATEDIR)
+ 	-rmdir $(CONFDIR)
+ 	-rmdir $(LIBDIR)
+ 	-rmdir $(BINDIR)
+diff -ur munin-1.3.4/Makefile.config munin-1.3.4.conf/Makefile.config
+--- munin-1.3.4/Makefile.config	2008-12-03 23:42:52.000000000 +0100
++++ munin-1.3.4.conf/Makefile.config	2008-12-03 23:46:45.000000000 +0100
+@@ -32,6 +32,7 @@
+ # Server only - Output directory
+ HTMLDIR    = $(DESTDIR)/var/lib/munin/html
+ CGIDIR     = $(LIBDIR)/cgi
++TEMPLATEDIR= $(DESTDIR)/etc/webapps/munin/templates
+ 
+ # Client only - Where to put RRD files and other intenal data
+ DBDIR      = $(DESTDIR)/var/lib/munin/db
+diff -ur munin-1.3.4/server/munin.conf.in munin-1.3.4.conf/server/munin.conf.in
+--- munin-1.3.4/server/munin.conf.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4.conf/server/munin.conf.in	2008-12-03 23:44:43.000000000 +0100
+@@ -9,7 +9,7 @@
+ rundir  @@STATEDIR@@
+ 
+ # Where to look for the HTML templates
+-tmpldir	@@CONFDIR@@/templates
++tmpldir	@@TEMPLATEDIR@@
+ 
+ # Make graphs show values per minute instead of per second
+ #graph_period minute
+diff -ur munin-1.3.4/server/Munin.pm.in munin-1.3.4.conf/server/Munin.pm.in
+--- munin-1.3.4/server/Munin.pm.in	2008-12-03 23:42:52.000000000 +0100
++++ munin-1.3.4.conf/server/Munin.pm.in	2008-12-03 23:44:26.000000000 +0100
+@@ -266,7 +266,7 @@
+     $config->{'rundir'} ||= "/var/lock";
+     $config->{'dbdir'}  ||= "@@DBDIR@@";
+     $config->{'logdir'} ||= "@@LOGDIR@@";
+-    $config->{'tmpldir'}||= "@@CONFDIR@@/templates/";
++    $config->{'tmpldir'}||= "@@TEMPLATEDIR@@/";
+     $config->{'htmldir'}||= "@@HTMLDIR@@/";
+     $config->{'#%#parent'}= undef;
+     $config->{'#%#name'}= "root";
