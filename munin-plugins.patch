@@ -1,7 +1,7 @@
 diff -Naur munin-1.3.4/dists/tarball/plugins.conf munin-1.3.4-p/dists/tarball/plugins.conf
 --- munin-1.3.4/dists/tarball/plugins.conf	Sat Mar  8 02:42:39 2008
 +++ munin-1.3.4-p/dists/tarball/plugins.conf	Fri Apr  4 11:13:06 2008
-@@ -31,3 +31,125 @@
+@@ -31,3 +31,126 @@
  
  [postfix*]
  user root
@@ -14,6 +14,7 @@ diff -Naur munin-1.3.4/dists/tarball/plugins.conf munin-1.3.4-p/dists/tarball/pl
 +[amavis*]
 +user root
 +env.amavislog /var/log/maillog
++env.logfile /var/log/maillog
 +
 +[courier*]
 +user root
