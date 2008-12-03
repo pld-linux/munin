@@ -28,9 +28,10 @@ URL:		http://munin.sourceforge.net/
 BuildRequires:	migrate-to-webapps
 BuildRequires:	html2text
 BuildRequires:	htmldoc
-BuildRequires:	perl-devel
-BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	perl-Net-SNMP
+BuildRequires:	perl-devel
+BuildRequires:	rpm-perlprov
+BuildRequires:	rpmbuild(macros) >= 1.268
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	fonts-TTF-bitstream-vera
 Requires:	perl-Date-Manip
