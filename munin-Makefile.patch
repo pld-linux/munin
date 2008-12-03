@@ -36,7 +36,7 @@ diff -Naur munin-1.3.4/Makefile.config munin-1.3.4-p/Makefile.config
  
  # Server only - where to put munin-cron
  BINDIR     = $(PREFIX)/bin
-@@ -24,17 +24,17 @@
+@@ -24,21 +24,21 @@
  DOCDIR     = $(PREFIX)/doc
  
  # Where to put man pages
@@ -59,6 +59,11 @@ diff -Naur munin-1.3.4/Makefile.config munin-1.3.4-p/Makefile.config
  
  # Client only - Where plugins should put their states. Must be writable by
  # group "munin", and should be preserved between reboots
+-PLUGSTATE  = $(DBDIR)/plugin-state
++PLUGSTATE  = $(DESTDIR)/var/lib/munin/plugin-state
+ 
+ # Where Munin should place its logs.
+ LOGDIR     = $(DESTDIR)/var/log/munin
 @@ -67,14 +67,14 @@
  BASH       = /bin/bash
  
