@@ -9,9 +9,9 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.3.4
-Release:	4
+Release:	4.1
 License:	GPL
-Group:		Daemons
+Group:		Applications/WWW
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
 # Source0-md5:	e3a58e582407981d4f5c5aed59cbfc47
 Source1:	%{name}-node.init
@@ -19,11 +19,13 @@ Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
 Source4:	%{name}.logrotate
 Source5:	%{name}-node.logrotate
+Source6:	%{name}-lighttpd.conf
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-node-config.patch
 Patch3:		%{name}-group_order.patch
 Patch4:		%{name}-rrdtool-font.patch
+Patch5:		%{name}-templatedir.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	migrate-to-webapps
 BuildRequires:	html2text
@@ -38,12 +40,21 @@ Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
 Requires:	rrdtool >= 1.3.0
+Requires:	webapps
+Requires:	webserver(alias)
+Requires:	webserver(auth)
+Requires:	webserver(cgi)
+Requires:	webserver(expires)
+Requires(triggerpostun):	sed >= 4.0
 Conflicts:	logrotate < 3.7-4
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_sysconfdir	/etc/%{name}
-%define		htmldir		/home/services/httpd/html/%{name}
+%define		_webapps	/etc/webapps
+%define		_webapp		%{name}
+%define		_appdir		%{_datadir}/%{_webapp}
+%define		_htmldir	/var/lib/%{name}/html
 
 %description
 Munin, formerly known as The Linpro RRD server, queries a number of
@@ -108,6 +119,7 @@ Munin.
 %patch2 -p1
 %patch3 -p0
 %patch4 -p1
+%patch5 -p1
 
 %if "%{_lib}" != "lib"
 sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' node/node.d/mailman.in
@@ -120,6 +132,7 @@ sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' node/node.d/mailman.in
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d,logrotate.d}
 install -d $RPM_BUILD_ROOT/var/log/archive/munin
+install -d $RPM_BUILD_ROOT%{_webapps}/%{_webapp}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -129,34 +142,41 @@ install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/logrotate.d/munin-node
 
-install %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/apache.conf
+install %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/apache.conf
+install %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
+install %{SOURCE6} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/lighttpd.conf
 
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
 
-install server/style.css $RPM_BUILD_ROOT%{htmldir}/
+install server/style.css $RPM_BUILD_ROOT%{_htmldir}/
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %triggerin -- apache1 < 1.3.37-3, apache1-base
-%apache_config_install -v 1 -c %{_sysconfdir}/apache.conf
+%webapp_register apache %{_webapp}
 
 %triggerun -- apache1 < 1.3.37-3, apache1-base
-%apache_config_uninstall -v 1
+%webapp_unregister apache %{_webapp}
 
-%triggerin -- apache >= 2.0.0
-%apache_config_install -v 2 -c %{_sysconfdir}/apache.conf
+%triggerin -- apache < 2.2.0, apache-base
+%webapp_register httpd %{_webapp}
 
-%triggerun -- apache >= 2.0.0
-%apache_config_uninstall -v 2
+%triggerun -- apache < 2.2.0, apache-base
+%webapp_unregister httpd %{_webapp}
+
+%triggerin -- lighttpd
+%webapp_register lighttpd %{_webapp}
+
+%triggerun -- lighttpd
+%webapp_unregister lighttpd %{_webapp}
 
 %post node
 if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
 	%{_sbindir}/munin-node-configure --shell | sh
 fi
-
 %service munin-node restart "Munin Node agent"
 
 %preun node
@@ -177,23 +197,25 @@ fi
 
 %files
 %defattr(644,root,root,755)
+%dir %attr(750,munin,http) %{_webapps}/%{_webapp}
+%dir %attr(750,root,http) %{_webapps}/%{_webapp}/templates
+%{_webapps}/%{_webapp}/templates/*
+%config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/munin.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/apache.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/httpd.conf
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/lighttpd.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/munin
-%dir %{_sysconfdir}/templates
-%{_sysconfdir}/templates/*
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/apache.conf
 %attr(755,root,root) %{_sbindir}/munin-cron
 %attr(755,root,root) %{_datadir}/munin/munin-graph
 %attr(755,root,root) %{_datadir}/munin/munin-html
 %attr(755,root,root) %{_datadir}/munin/munin-limits
 %attr(755,root,root) %{_datadir}/munin/munin-update
-%attr(755,munin,root) %dir %{htmldir}
-%attr(644,munin,root) %{htmldir}/.htaccess
-%attr(644,munin,root) %{htmldir}/favicon.ico
-%attr(644,munin,root) %{htmldir}/style.css
 %attr(755,munin,root) %dir %{_datadir}/munin/cgi
 %attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-graph
+%attr(755,munin,root) %dir %{_htmldir}
+%attr(644,munin,root) %{_htmldir}/favicon.ico
+%attr(644,munin,root) %{_htmldir}/style.css
 %{perl_vendorlib}/Munin.pm
 %{_mandir}/man8/munin-graph*
 %{_mandir}/man8/munin-update*
@@ -201,15 +223,16 @@ fi
 %{_mandir}/man8/munin-html*
 %{_mandir}/man8/munin-cron*
 %{_mandir}/man5/munin.conf*
+%attr(770,munin,munin) %dir /var/lib/munin/db
 
 %files common
 %defattr(644,root,root,755)
 %doc README ChangeLog logo* Checklist
 %dir %{_sysconfdir}
 %dir %{_datadir}/munin
-%attr(750,munin,root) %dir /var/log/munin
+%attr(770,munin,http) %dir /var/log/munin
 %attr(750,munin,root) %dir /var/log/archive/munin
-%attr(770,munin,munin) %dir /var/lib/munin
+%attr(771,munin,munin) %dir /var/lib/munin
 
 %files node
 %defattr(644,root,root,755)
@@ -220,6 +243,7 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin-node
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
+%attr(755,root,root) %{_bindir}/munindoc
 %attr(755,root,root) %{_sbindir}/munin-run
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
