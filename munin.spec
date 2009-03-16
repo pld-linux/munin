@@ -94,6 +94,7 @@ Summary(pl.UTF-8):	Agent danych RRD Linpro
 Group:		Daemons
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-common = %{version}-%{release}
+Requires:	logtail
 Requires:	logtool
 #Requires:	perl-Config-General
 Requires:	perl-Net-Netmask
