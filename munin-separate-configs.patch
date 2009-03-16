@@ -1,0 +1,664 @@
+diff -ur munin-1.3.4/Makefile munin-1.3.4-separate-configs/Makefile
+--- munin-1.3.4/Makefile	2009-03-16 17:06:31.000000000 +0100
++++ munin-1.3.4-separate-configs/Makefile	2009-03-16 17:05:59.000000000 +0100
+@@ -29,7 +29,7 @@
+ # a new config.  Target suitable for maintainers
+ unconfig:
+ 	rm -f $(HTMLDIR)/.htaccess
+-	rm -f $(CONFDIR)/munin.conf
++	rm -f $(SCONFDIR)/munin.conf
+ 
+ install-main: build
+ 	$(CHECKUSER)
+@@ -56,7 +56,7 @@
+ 	$(INSTALL) -m 0755 server/VeraMono.ttf $(LIBDIR)/
+ 	$(INSTALL) -m 0644 resources/favicon.ico $(HTMLDIR)/
+ 	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/server/munin-htaccess $(HTMLDIR)/.htaccess
+-	test -f "$(CONFDIR)/munin.conf"  || $(INSTALL) -m 0644 build/server/munin.conf $(CONFDIR)/
++	test -f "$(SCONFDIR)/munin.conf"  || $(INSTALL) -m 0644 build/server/munin.conf $(SCONFDIR)/
+ 	$(INSTALL) -m 0755 build/server/munin-cron $(SBINDIR)/
+ 	$(INSTALL) -m 0755 build/server/munin-check $(LIBDIR)/
+ 	$(INSTALL) -m 0755 build/server/munin-update $(LIBDIR)/
+@@ -75,7 +75,7 @@
+ 	rm -f $(TEMPLATEDIR)/definitions.html
+ 	rm -f $(HTMLDIR)/.htaccess
+ 
+-	rm -f $(CONFDIR)/munin.conf 
++	rm -f $(SCONFDIR)/munin.conf 
+ 
+ 	rm -f $(BINDIR)/munin-cron 
+ 	rm -f $(BINDIR)/munin-check
+@@ -88,7 +88,7 @@
+ 
+ 	rm -f $(PERLLIB)/Munin.pm 
+ 	-rmdir $(TEMPLATEDIR)
+-	-rmdir $(CONFDIR)
++	-rmdir $(SCONFDIR)
+ 	-rmdir $(LIBDIR)
+ 	-rmdir $(BINDIR)
+ 
+@@ -116,8 +116,8 @@
+ 
+ install-node-non-snmp: build
+ 	$(CHECKGROUP)
+-	mkdir -p $(CONFDIR)/plugins
+-	mkdir -p $(CONFDIR)/plugin-conf.d
++	mkdir -p $(CCONFDIR)/plugins
++	mkdir -p $(CCONFDIR)/plugin-conf.d
+ 	mkdir -p $(LIBDIR)/plugins
+ 	mkdir -p $(SBINDIR)
+ 	mkdir -p $(PERLLIB)/Munin/Plugin
+@@ -128,20 +128,20 @@
+ 
+ 	$(CHOWN) $(PLUGINUSER):$(GROUP) $(PLUGSTATE)
+ 	$(CHMOD) 0775 $(PLUGSTATE)
+-	$(CHMOD) 0755 $(CONFDIR)/plugin-conf.d
++	$(CHMOD) 0755 $(CCONFDIR)/plugin-conf.d
+ 
+ 	$(INSTALL) -m 0755 build/node/munin-node $(SBINDIR)/
+ 	$(INSTALL) -m 0755 build/node/munin-node-configure $(SBINDIR)/
+-	test -f "$(CONFDIR)/munin-node.conf" || $(INSTALL) -m 0644 build/node/munin-node.conf $(CONFDIR)/
++	test -f "$(CCONFDIR)/munin-node.conf" || $(INSTALL) -m 0644 build/node/munin-node.conf $(CCONFDIR)/
+ 	$(INSTALL) -m 0755 build/node/munin-run $(SBINDIR)/
+ 
+ uninstall-node-non-snmp: build
+ 	rm -f $(SBINDIR)/munin-node 
+ 	rm -f $(SBINDIR)/munin-node-configure
+-	rm -f $(CONFDIR)/munin-node.conf 
++	rm -f $(CCONFDIR)/munin-node.conf 
+ 	rm -f $(SBINDIR)/munin-run
+-	-rmdir $(CONFDIR)/plugin-conf.d
+-	-rmdir $(CONFDIR)
++	-rmdir $(CCONFDIR)/plugin-conf.d
++	-rmdir $(CCONFDIR)
+ 	-rmdir $(SBINDIR)
+ 
+ 
+@@ -232,7 +232,8 @@
+ 		echo Generating build/$$destname..;			\
+ 		mkdir -p build/`dirname $$file`;			\
+ 		sed -e 's|@@PREFIX@@|$(PREFIX)|g'			\
+-		    -e 's|@@CONFDIR@@|$(CONFDIR)|g'			\
++		    -e 's|@@CCONFDIR@@|$(CCONFDIR)|g'			\
++		    -e 's|@@SCONFDIR@@|$(SCONFDIR)|g'			\
+ 		    -e 's|@@BINDIR@@|$(BINDIR)|g'			\
+ 		    -e 's|@@SBINDIR@@|$(SBINDIR)|g'			\
+ 		    -e 's|@@DOCDIR@@|$(DOCDIR)|g'			\
+@@ -365,7 +366,7 @@
+ 	$(MAKE) $@ CONFIG=t/Makefile.config
+ else
+ test_plugins = id_default id_root env
+-test: t/*.t t/install $(addprefix $(CONFDIR)/plugins/,$(test_plugins))
++test: t/*.t t/install $(addprefix $(CCONFDIR)/plugins/,$(test_plugins))
+ 	@for test in t/*.t; do \
+ 		echo -n "$$test: "; \
+ 		PERL5LIB=$(PERLLIB) $(PERL) $$test;\
+@@ -373,10 +374,10 @@
+ endif
+ 
+ node-monkeywrench: install-node
+-	rm -rf $(CONFDIR)/plugins
++	rm -rf $(CCONFDIR)/plugins
+ 	rm -rf $(LIBDIR)/plugins
+ 	mkdir -p $(LIBDIR)/plugins
+-	mkdir -p $(CONFDIR)/plugins
++	mkdir -p $(CCONFDIR)/plugins
+ 	cp monkeywrench/plugin-break*_ $(LIBDIR)/plugins/
+ 	$(SBINDIR)/munin-node-configure --suggest
+ 	echo 'Done?'
+diff -ur munin-1.3.4/Makefile.config munin-1.3.4-separate-configs/Makefile.config
+--- munin-1.3.4/Makefile.config	2009-03-16 17:06:31.000000000 +0100
++++ munin-1.3.4-separate-configs/Makefile.config	2009-03-16 16:55:19.000000000 +0100
+@@ -12,7 +12,8 @@
+ PREFIX     = $(DESTDIR)/usr
+ 
+ # Where Munin keeps its configurations (server.conf, client.conf, ++)
+-CONFDIR    = $(DESTDIR)/etc/munin
++CCONFDIR    = $(DESTDIR)/etc/munin
++SCONFDIR    = $(DESTDIR)/etc/webapps/munin
+ 
+ # Server only - where to put munin-cron
+ BINDIR     = $(PREFIX)/bin
+diff -ur munin-1.3.4/node/munindoc.in munin-1.3.4-separate-configs/node/munindoc.in
+--- munin-1.3.4/node/munindoc.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/munindoc.in	2009-03-16 17:01:55.000000000 +0100
+@@ -46,7 +46,7 @@
+ @ARGV=();
+ 
+ # Dirs in which to look for $plugin.pod and $plugin files.
+-my @DIRS = ('@@LIBDIR@@/plugins','@@CONFDIR@@/plugins', '@@PERLLIB@@');
++my @DIRS = ('@@LIBDIR@@/plugins','@@CCONFDIR@@/plugins', '@@PERLLIB@@');
+ # my @DIRS = ('/usr/share/munin/plugins','/etc/munin/plugins');
+ 
+ File::Find::find({wanted => \&wanted_pod}, @DIRS);
+diff -ur munin-1.3.4/node/munin-node-configure.in munin-1.3.4-separate-configs/node/munin-node-configure.in
+--- munin-1.3.4/node/munin-node-configure.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/munin-node-configure.in	2009-03-16 17:00:03.000000000 +0100
+@@ -26,8 +26,8 @@
+ # use Data::Dumper;
+ 
+ my $version    = "@@VERSION@@";
+-my $config     = "@@CONFDIR@@/munin-node.conf";
+-my $servicedir = "@@CONFDIR@@/plugins";
++my $config     = "@@CCONFDIR@@/munin-node.conf";
++my $servicedir = "@@CCONFDIR@@/plugins";
+ my $libdir     = "@@LIBDIR@@/plugins";
+ my $bindir     = "@@SBINDIR@@";
+ my $installed  = undef;
+@@ -688,11 +688,11 @@
+ 
+ =item B<< --config <file> >>
+ 
+-Override configuration file [@@CONFDIR@@/client.conf]
++Override configuration file [@@CCONFDIR@@/client.conf]
+ 
+ =item B<< --servicedir <dir> >>
+ 
+-Override plugin dir [@@CONFDIR@@/plugins/]
++Override plugin dir [@@CCONFDIR@@/plugins/]
+ 
+ =item B<< --libdir <dir> >>
+ 
+@@ -744,9 +744,9 @@
+ 
+ =head1 FILES
+ 
+-	@@CONFDIR@@/munin-node.conf
+-	@@CONFDIR@@/plugin-conf.d/*
+-	@@CONFDIR@@/plugins/*
++	@@CCONFDIR@@/munin-node.conf
++	@@CCONFDIR@@/plugin-conf.d/*
++	@@CCONFDIR@@/plugins/*
+ 	@@LIBDIR@@/plugins/*
+ 
+ =head1 VERSION
+diff -ur munin-1.3.4/node/munin-node-configure-snmp.in munin-1.3.4-separate-configs/node/munin-node-configure-snmp.in
+--- munin-1.3.4/node/munin-node-configure-snmp.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/munin-node-configure-snmp.in	2009-03-16 16:59:43.000000000 +0100
+@@ -24,8 +24,8 @@
+ 
+ my $debug      = 0;
+ my $version    = "@@VERSION@@";
+-my $config     = "@@CONFDIR@@/munin-node.conf";
+-my $servicedir = "@@CONFDIR@@/plugins";
++my $config     = "@@CCONFDIR@@/munin-node.conf";
++my $servicedir = "@@CCONFDIR@@/plugins";
+ my $libdir     = "@@LIBDIR@@/plugins";
+ my $bindir     = "@@SBINDIR@@";
+ 
+diff -ur munin-1.3.4/node/munin-node.in munin-1.3.4-separate-configs/node/munin-node.in
+--- munin-1.3.4/node/munin-node.in	2009-03-16 17:06:31.000000000 +0100
++++ munin-1.3.4-separate-configs/node/munin-node.in	2009-03-16 17:00:58.000000000 +0100
+@@ -50,7 +50,7 @@
+ 
+ # Make configuration settings available at runtime.
+ $ENV{'MUNIN_PREFIX'}     = '@@PREFIX@@';
+-$ENV{'MUNIN_CONFDIR'}    = '@@CONFDIR@@';   # /etc/munin,/etc/opt/munin or such
++$ENV{'MUNIN_CONFDIR'}    = '@@CCONFDIR@@';   # /etc/munin,/etc/opt/munin or such
+ $ENV{'MUNIN_BINDIR'}     = '@@BINDIR@@';
+ $ENV{'MUNIN_SBINDIR'}    = '@@SBINDIR@@';
+ $ENV{'MUNIN_DOCDIR'}     = '@@DOCDIR@@';
+@@ -79,9 +79,9 @@
+ my @ORIG_ARGV = @ARGV;
+ my %services;
+ my %nodes;
+-my $servicedir="@@CONFDIR@@/plugins";
+-my $sconfdir="@@CONFDIR@@/plugin-conf.d";
+-my $conffile="@@CONFDIR@@/munin-node.conf";
++my $servicedir="@@CCONFDIR@@/plugins";
++my $sconfdir="@@CCONFDIR@@/plugin-conf.d";
++my $conffile="@@CCONFDIR@@/munin-node.conf";
+ my $FQDN="";
+ my $do_usage = 0;
+ my $DEBUG = 0;
+@@ -595,12 +595,12 @@
+       $key = $cert = &get_var (\%sconf, "tls_pem");
+       $key = &get_var (\%sconf, "tls_private_key")
+ 	  unless defined $key;
+-      $key = "@@CONFDIR@@/munin-node.pem" unless defined $key;
++      $key = "@@CCONFDIR@@/munin-node.pem" unless defined $key;
+       $cert = &get_var (\%sconf, "tls_certificate")
+ 	  unless defined $cert;
+-      $cert = "@@CONFDIR@@/munin-node.pem" unless defined $cert;
++      $cert = "@@CCONFDIR@@/munin-node.pem" unless defined $cert;
+       $ca_cert = &get_var(\%sconf, "tls_ca_certificate");
+-      $ca_cert = "@@CONFDIR@@/cacert.pem" unless defined $ca_cert;
++      $ca_cert = "@@CCONFDIR@@/cacert.pem" unless defined $ca_cert;
+       $depth = &get_var (\%sconf, 'tls_verify_depth');
+       $depth = 5 unless defined $depth;
+       $tls_verify = &get_var (\%sconf, 'tls_verify_certificate');
+@@ -1210,9 +1210,9 @@
+ 
+ =head1 FILES
+ 
+-	@@CONFDIR@@/munin-node.conf
+-	@@CONFDIR@@/plugins/*
+-	@@CONFDIR@@/plugin-conf.d/*
++	@@CCONFDIR@@/munin-node.conf
++	@@CCONFDIR@@/plugins/*
++	@@CCONFDIR@@/plugin-conf.d/*
+ 	@@STATEDIR@@/munin-node.pid
+ 	@@LOGDIR@@/munin-node
+ 
+diff -ur munin-1.3.4/node/Muninnode.pm munin-1.3.4-separate-configs/node/Muninnode.pm
+--- munin-1.3.4/node/Muninnode.pm	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/Muninnode.pm	2009-03-16 16:59:31.000000000 +0100
+@@ -24,7 +24,7 @@
+ use strict;
+ 
+ my $VERSION = '@@VERSION@@';
+-my $CONFDIR = '@@CONFDIR@@';
++my $CONFDIR = '@@CCONFDIR@@';
+ my $PLUGINUSER = '@@PLUGINUSER@@';
+ my $GROUP = '@@GROUP@@';
+ my $STATEDIR = '@@STATEDIR@@';
+diff -ur munin-1.3.4/node/munin-node-simple.in munin-1.3.4-separate-configs/node/munin-node-simple.in
+--- munin-1.3.4/node/munin-node-simple.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/munin-node-simple.in	2009-03-16 17:00:10.000000000 +0100
+@@ -28,8 +28,8 @@
+ 
+ $| = 1;
+ 
+-my $clientdir = "@@CONFDIR@@/node.d";
+-my $conffile  = "@@CONFDIR@@/node-simple.conf";
++my $clientdir = "@@CCONFDIR@@/node.d";
++my $conffile  = "@@CCONFDIR@@/node-simple.conf";
+ my $version   = "@@VERSION@@";
+ 
+ # Empty environment
+diff -ur munin-1.3.4/node/munin-run.in munin-1.3.4-separate-configs/node/munin-run.in
+--- munin-1.3.4/node/munin-run.in	2009-03-16 17:06:31.000000000 +0100
++++ munin-1.3.4-separate-configs/node/munin-run.in	2009-03-16 17:01:47.000000000 +0100
+@@ -44,7 +44,7 @@
+ 
+ # Make configuration settings available at runtime.
+ $ENV{'MUNIN_PREFIX'}     = '@@PREFIX@@';
+-$ENV{'MUNIN_CONFDIR'}    = '@@CONFDIR@@';   # /etc/munin,/etc/opt/munin or such
++$ENV{'MUNIN_CONFDIR'}    = '@@CCONFDIR@@';   # /etc/munin,/etc/opt/munin or such
+ $ENV{'MUNIN_BINDIR'}     = '@@BINDIR@@';
+ $ENV{'MUNIN_SBINDIR'}    = '@@SBINDIR@@';
+ $ENV{'MUNIN_DOCDIR'}     = '@@DOCDIR@@';
+@@ -71,9 +71,9 @@
+ 
+ my %services;
+ my %nodes;
+-my $servicedir="@@CONFDIR@@/plugins";
+-my $sconfdir="@@CONFDIR@@/plugin-conf.d";
+-my $conffile="@@CONFDIR@@/munin-node.conf";
++my $servicedir="@@CCONFDIR@@/plugins";
++my $sconfdir="@@CCONFDIR@@/plugin-conf.d";
++my $conffile="@@CCONFDIR@@/munin-node.conf";
+ my $sconffile=undef;
+ my $FQDN="";
+ my $do_usage = 0;
+@@ -104,11 +104,11 @@
+ Options:
+     --help              View this message.
+     --config <file>     Use <file> as configuration file. 
+-                        [@@CONFDIR@@/munin-node.conf]
++                        [@@CCONFDIR@@/munin-node.conf]
+     --servicedir <dir>  Dir where plugins are found. 
+-                        [@@CONFDIR@@/plugins]
++                        [@@CCONFDIR@@/plugins]
+     --sconfdir <dir>    Dir where plugin configurations are found. 
+-                        [@@CONFDIR@@/plugin-conf.d]
++                        [@@CCONFDIR@@/plugin-conf.d]
+     --sconffile <dir>   Dir where plugins are found. Overrides sconfdir.
+                         [undefined]
+     --[no]paranoia      Only run plugins owned by root. Check permissions.
+@@ -682,15 +682,15 @@
+ 
+ =item B<< --config <configfile> >>
+ 
+-Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin-node.conf]
++Use E<lt>fileE<gt> as configuration file. [@@CCONFDIR@@/munin-node.conf]
+ 
+ =item B<< --servicedir <dir> >>
+ 
+-Use E<lt>dirE<gt> as plugin dir. [@@CONFDIR@@/plugins]
++Use E<lt>dirE<gt> as plugin dir. [@@CCONFDIR@@/plugins]
+ 
+ =item B<< --sconfdir <dir> >>
+ 
+-Use E<lt>dirE<gt> as plugin configuration dir. [@@CONFDIR@@/plugin-conf.d]
++Use E<lt>dirE<gt> as plugin configuration dir. [@@CCONFDIR@@/plugin-conf.d]
+ 
+ =item B<< --sconffile <file> >>
+ 
+@@ -728,9 +728,9 @@
+ 
+ =head1 FILES
+ 
+-	@@CONFDIR@@/munin-node.conf
+-	@@CONFDIR@@/plugins/*
+-	@@CONFDIR@@/plugin-conf.d/*
++	@@CCONFDIR@@/munin-node.conf
++	@@CCONFDIR@@/plugins/*
++	@@CCONFDIR@@/plugin-conf.d/*
+ 	@@STATEDIR@@/munin-node.pid
+ 	@@LOGDIR@@/munin-node
+ 
+diff -ur munin-1.3.4/node/node.d/ntp_kernel_pll_freq.in munin-1.3.4-separate-configs/node/node.d/ntp_kernel_pll_freq.in
+--- munin-1.3.4/node/node.d/ntp_kernel_pll_freq.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/node.d/ntp_kernel_pll_freq.in	2009-03-16 17:02:32.000000000 +0100
+@@ -27,8 +27,8 @@
+     exit $?
+ fi
+ 
+-if [ -f @@CONFDIR@@/ntp-freq-comp ]; then
+-    fcomp=`cat @@CONFDIR@@/ntp-freq-comp`
++if [ -f @@CCONFDIR@@/ntp-freq-comp ]; then
++    fcomp=`cat @@CCONFDIR@@/ntp-freq-comp`
+ else
+     fcomp=0
+ fi
+diff -ur munin-1.3.4/node/node.d.darwin/load.in munin-1.3.4-separate-configs/node/node.d.darwin/load.in
+--- munin-1.3.4/node/node.d.darwin/load.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/node.d.darwin/load.in	2009-03-16 17:02:52.000000000 +0100
+@@ -2,7 +2,7 @@
+ # 
+ # Plugin to monitor the load average on a system.
+ #
+-# Usage: Link or copy into @@CONFDIR@@/plugins/
++# Usage: Link or copy into @@CCONFDIR@@/plugins/
+ #
+ # Parameters
+ #     env.load_warn <warning load>
+diff -ur munin-1.3.4/node/node.d.linux/fw_conntrack.in munin-1.3.4-separate-configs/node/node.d.linux/fw_conntrack.in
+--- munin-1.3.4/node/node.d.linux/fw_conntrack.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/node.d.linux/fw_conntrack.in	2009-03-16 17:03:21.000000000 +0100
+@@ -11,7 +11,7 @@
+ #    autoconf
+ #
+ # NOTE: MUST RUN AS ROOT.
+-# @@CONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
++# @@CCONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
+ # [fw*]
+ #      user root
+ #
+diff -ur munin-1.3.4/node/node.d.linux/fw_forwarded_local.in munin-1.3.4-separate-configs/node/node.d.linux/fw_forwarded_local.in
+--- munin-1.3.4/node/node.d.linux/fw_forwarded_local.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/node.d.linux/fw_forwarded_local.in	2009-03-16 17:03:35.000000000 +0100
+@@ -16,7 +16,7 @@
+ #%# capabilities=autoconf
+ #
+ # NOTE: MUST RUN AS ROOT.
+-# @@CONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
++# @@CCONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
+ # [fw*]
+ #      user root
+ 
+diff -ur munin-1.3.4/node/node.d.linux/fw_packets.in munin-1.3.4-separate-configs/node/node.d.linux/fw_packets.in
+--- munin-1.3.4/node/node.d.linux/fw_packets.in	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4-separate-configs/node/node.d.linux/fw_packets.in	2009-03-16 17:03:41.000000000 +0100
+@@ -11,7 +11,7 @@
+ #       autoconf (optional - used by munin-config)
+ #
+ # NOTE: MUST RUN AS ROOT.
+-# @@CONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
++# @@CCONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
+ # [fw*]
+ #      user root
+ #
+diff -ur munin-1.3.4/resources/hpux-init.d_munin-node.in munin-1.3.4-separate-configs/resources/hpux-init.d_munin-node.in
+--- munin-1.3.4/resources/hpux-init.d_munin-node.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/resources/hpux-init.d_munin-node.in	2009-03-16 16:58:59.000000000 +0100
+@@ -6,7 +6,7 @@
+ PATH=/sbin:/bin:/usr/sbin:/usr/bin
+ NAME=munin-node
+ DAEMON=@@SBINDIR@@/$NAME
+-CONFFILE=@@CONFDIR@@/munin-node.conf
++CONFFILE=@@CCONFDIR@@/munin-node.conf
+ RUN_AS=$(awk '$1~/user/{print$2}' $CONFFILE)
+ PIDFILE=$(awk '$1~/pid/{print$2}' $CONFFILE)
+ MYCONF=/etc/rc.config.d/muninconf
+diff -ur munin-1.3.4/resources/linux-cron.d_munin-node.in munin-1.3.4-separate-configs/resources/linux-cron.d_munin-node.in
+--- munin-1.3.4/resources/linux-cron.d_munin-node.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/resources/linux-cron.d_munin-node.in	2009-03-16 16:59:10.000000000 +0100
+@@ -8,5 +8,5 @@
+ # an hour (12 invokations an hour, 1 in 12 chance that the update will
+ # happen), but ensure that there will never be more than two hour (7200
+ # seconds) interval between updates..
+-*/5 * * * *	root [ -x @@CONFDIR@@/plugins/apt ] && @@CONFDIR@@/plugins/apt update 7200 12 >/dev/null
++*/5 * * * *	root [ -x @@CCONFDIR@@/plugins/apt ] && @@CCONFDIR@@/plugins/apt update 7200 12 >/dev/null
+ 
+diff -ur munin-1.3.4/server/munin-cgi-graph.in munin-1.3.4-separate-configs/server/munin-cgi-graph.in
+--- munin-1.3.4/server/munin-cgi-graph.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-cgi-graph.in	2009-03-16 16:56:01.000000000 +0100
+@@ -32,7 +32,7 @@
+ use IPC::SysV qw(IPC_CREAT);
+ 
+ my $GRAPHER = "@@LIBDIR@@/munin-graph";
+-my $conffile = "@@CONFDIR@@/munin.conf";
++my $conffile = "@@SCONFDIR@@/munin.conf";
+ 
+ my %TIMES   = ( "day"   => ["--noweek", "--nomonth", "--noyear", "--nosumweek", "--nosumyear"], 
+ 		"week"  => ["--noday", "--nomonth", "--noyear", "--nosumweek", "--nosumyear"], 
+diff -ur munin-1.3.4/server/munin-check.in munin-1.3.4-separate-configs/server/munin-check.in
+--- munin-1.3.4/server/munin-check.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-check.in	2009-03-16 16:56:22.000000000 +0100
+@@ -157,7 +157,7 @@
+ norec=yes owner_ok @@PLUGSTATE@@ @@PLUGINUSER@@
+ norec=yes perm_ok @@PLUGSTATE@@ 775
+ 
+-norec=yes perm_ok @@CONFDIR@@/plugin-conf.d 755
++norec=yes perm_ok @@CCONFDIR@@/plugin-conf.d 755
+ 
+ echo "Check done.  Please note that this script only checks most things,"
+ echo "not all things."
+diff -ur munin-1.3.4/server/munin.conf.pod munin-1.3.4-separate-configs/server/munin.conf.pod
+--- munin-1.3.4/server/munin.conf.pod	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin.conf.pod	2009-03-16 16:58:29.000000000 +0100
+@@ -31,7 +31,7 @@
+ 	[machine1.your.dom]
+ 		address localhost
+ 
+-The default location of F<munin.conf> is F<@@CONFDIR@@/munin.conf>.
++The default location of F<munin.conf> is F<@@SCONFDIR@@/munin.conf>.
+ If your placement deviates from this norm, use the "--config
+ E<lt>fileE<gt>"-option when running the munin-* programs.
+ 
+@@ -145,20 +145,20 @@
+ =item B<tls_private_key> <value>
+ 
+ This directive sets the location of the private key to be used for
+-TLS.  Default is @@CONFDIR@@/munin.pem.  The private key and
++TLS.  Default is @@SCONFDIR@@/munin.pem.  The private key and
+ certificate can be stored in the same file.  Affects: munin-update.
+ 
+ =item B<tls_certificate> <value>
+ 
+ This directive sets the location of the TLS certificate to be used for
+-TLS.  Default is @@CONFDIR@@/munin.pem.  The private key and
++TLS.  Default is @@SCONFDIR@@/munin.pem.  The private key and
+ certificate can be stored in the same file.  Affects: munin-update.
+ 
+ =item B<tls_ca_certificate> <value>
+ 
+ This directive sets the CA certificate to be used to verify the node's
+ certificate, if tls_verify_certificate is set to C<yes>.  Default is
+-@@CONFDIR@@/cacert.pem.  Affects: munin-update.
++@@SCONFDIR@@/cacert.pem.  Affects: munin-update.
+ 
+ =item B<tls_verify_depth> <value>
+ 
+diff -ur munin-1.3.4/server/munin-cron.pod munin-1.3.4-separate-configs/server/munin-cron.pod
+--- munin-1.3.4/server/munin-cron.pod	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-cron.pod	2009-03-16 16:56:52.000000000 +0100
+@@ -20,7 +20,7 @@
+ 
+ =item B<< --config <file> >>
+ 
+-Use E<lt>fileE<gt> as configuration file. [F<@@CONFDIR@@/munin.conf>]
++Use E<lt>fileE<gt> as configuration file. [F<@@SCONFDIR@@/munin.conf>]
+ 
+ =back
+ 
+diff -ur munin-1.3.4/server/munin-graph.in munin-1.3.4-separate-configs/server/munin-graph.in
+--- munin-1.3.4/server/munin-graph.in	2009-03-16 17:06:31.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-graph.in	2009-03-16 16:57:10.000000000 +0100
+@@ -59,7 +59,7 @@
+ my $skip_locking = 0;
+ my $skip_stats = 0;
+ my $stdout = 0;
+-my $conffile = "@@CONFDIR@@/munin.conf";
++my $conffile = "@@SCONFDIR@@/munin.conf";
+ my %draw = ("day" => 1, "week" => 1, "month" => 1, "year" => 1, "sumyear" => 1, "sumweek" => 1);
+ 
+ my $log = new IO::Handle;
+@@ -105,7 +105,7 @@
+ 			options may be supplied.
+     --host <host>	Limit graphed hosts to <host>. Multiple --host options
+     			may be supplied.
+-    --config <file>	Use <file> as configuration file. [@@CONFDIR@@/munin.conf]
++    --config <file>	Use <file> as configuration file. [@@SCONFDIR@@/munin.conf]
+     --[no]list-images	List the filenames of the images created. 
+     			[--nolist-images]
+     --[no]day		Create day-graphs.   [--day]
+@@ -1143,7 +1143,7 @@
+ 
+ =item B<< --config <file> >>
+ 
+-Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin.conf]
++Use E<lt>fileE<gt> as configuration file. [@@SCONFDIR@@/munin.conf]
+ 
+ =item B<< --[no]list-images >>
+ 
+@@ -1186,7 +1186,7 @@
+ 
+ =head1 FILES
+ 
+-	@@CONFDIR@@/munin.conf
++	@@SCONFDIR@@/munin.conf
+ 	@@DBDIR@@/*
+ 	@@LOGDIR@@/munin-graph
+ 	@@STATEDIR@@/*
+diff -ur munin-1.3.4/server/munin-htaccess.in munin-1.3.4-separate-configs/server/munin-htaccess.in
+--- munin-1.3.4/server/munin-htaccess.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-htaccess.in	2009-03-16 16:57:20.000000000 +0100
+@@ -9,7 +9,7 @@
+ # 
+ # <directory @@HTMLDIR@@>
+ 
+-AuthUserFile @@CONFDIR@@/munin-htpasswd
++AuthUserFile @@SCONFDIR@@/munin-htpasswd
+ AuthName "Munin"
+ AuthType Basic
+ require valid-user
+diff -ur munin-1.3.4/server/munin-html.in munin-1.3.4-separate-configs/server/munin-html.in
+--- munin-1.3.4/server/munin-html.in	2009-03-16 17:06:31.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-html.in	2009-03-16 16:57:29.000000000 +0100
+@@ -34,7 +34,7 @@
+ my @limit_hosts;
+ my $DEBUG=0;
+ my $VERSION = "@@VERSION@@";
+-my $conffile = "@@CONFDIR@@/munin.conf";
++my $conffile = "@@SCONFDIR@@/munin.conf";
+ my $force_root = 0;
+ my $do_usage = 0;
+ my $do_version = 0;
+@@ -761,7 +761,7 @@
+ 
+ =head1 FILES
+ 
+-	@@CONFDIR@@/munin.conf
++	@@SCONFDIR@@/munin.conf
+ 	@@DBDIR@@/datafile
+ 	@@LOGDIR@@/munin-html
+ 	@@HTMLDIR@@/*
+diff -ur munin-1.3.4/server/munin-limits.in munin-1.3.4-separate-configs/server/munin-limits.in
+--- munin-1.3.4/server/munin-limits.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-limits.in	2009-03-16 16:57:40.000000000 +0100
+@@ -28,7 +28,7 @@
+ 		       extract_quotelike extract_bracketed);
+ 
+ my $DEBUG=0;
+-my $conffile = "@@CONFDIR@@/munin.conf";
++my $conffile = "@@SCONFDIR@@/munin.conf";
+ my $do_usage = 0;
+ my @limit_hosts = ();
+ my @limit_services = ();
+@@ -550,7 +550,7 @@
+ 
+ =item B<< --config <file> >>
+ 
+-Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin.conf]
++Use E<lt>fileE<gt> as configuration file. [@@SCONFDIR@@/munin.conf]
+ 
+ =item B<< --[no]force >>
+ 
+@@ -586,7 +586,7 @@
+ 
+ =head1 FILES
+ 
+-	@@CONFDIR@@/munin.conf
++	@@SCONFDIR@@/munin.conf
+ 	@@DBDIR@@/*
+ 	@@STATEDIR@@/*
+ 
+diff -ur munin-1.3.4/server/Munin.pm.in munin-1.3.4-separate-configs/server/Munin.pm.in
+--- munin-1.3.4/server/Munin.pm.in	2009-03-16 17:06:31.000000000 +0100
++++ munin-1.3.4-separate-configs/server/Munin.pm.in	2009-03-16 16:58:43.000000000 +0100
+@@ -78,7 +78,7 @@
+ my $config = undef;
+ 
+ my $DEBUG=0;
+-my $configfile="@@CONFDIR@@/munin.conf";
++my $configfile="@@SCONFDIR@@/munin.conf";
+ 
+ my @legal = ("tmpldir", "ncsa", "ncsa_server", "ncsa_config", "rundir",
+ 	"dbdir", "logdir", "htmldir", "include", "domain_order", "node_order",
+diff -ur munin-1.3.4/server/munin-update.in munin-1.3.4-separate-configs/server/munin-update.in
+--- munin-1.3.4/server/munin-update.in	2008-03-08 02:42:40.000000000 +0100
++++ munin-1.3.4-separate-configs/server/munin-update.in	2009-03-16 16:58:10.000000000 +0100
+@@ -37,7 +37,7 @@
+ my $DEBUG=0;
+ my $VERSION="@@VERSION@@";
+ my $serversocket  = "munin-server-socket.$$";
+-my $conffile = "@@CONFDIR@@/munin.conf";
++my $conffile = "@@SCONFDIR@@/munin.conf";
+ my $force_root = 0;
+ my $do_usage = 0;
+ my @limit_hosts = ();
+@@ -80,7 +80,7 @@
+     --host <host>	Limit graphed hosts to <host>. Multiple --host options
+     			may be supplied.
+     --config <file>	Use <file> as configuration file. 
+-    			[@@CONFDIR@@/munin.conf]
++    			[@@SCONFDIR@@/munin.conf]
+     --[no]debug		View debug messages. [--nodebug]
+     --[no]fork		Don't fork one instance for each host. [--fork]
+     --[no]stdout	Print log messages to stdout as well. [--nostdout]
+@@ -907,11 +907,11 @@
+ 	my $ca_cert;
+ 	my $tls_verify;
+         $key = $cert = munin_get ($config, "tls_pem");
+-        $key = &munin_get ($config, "tls_private_key", "@@CONFDIR@@/munin.pem")
++        $key = &munin_get ($config, "tls_private_key", "@@SCONFDIR@@/munin.pem")
+   	  unless defined $key;
+-        $cert = &munin_get ($config, "tls_certificate", "@@CONFDIR@@/munin.pem")
++        $cert = &munin_get ($config, "tls_certificate", "@@SCONFDIR@@/munin.pem")
+   	  unless defined $cert;
+-        $ca_cert = &munin_get ($config, "tls_ca_certificate", "@@CONFDIR@@/cacert.pem")
++        $ca_cert = &munin_get ($config, "tls_ca_certificate", "@@SCONFDIR@@/cacert.pem")
+            unless defined $ca_cert;
+         $tls_verify=&munin_get ($config, "tls_verify_certificate", "no");
+         $depth=&munin_get ($config, "tls_verify_depth", 5);
+@@ -1283,7 +1283,7 @@
+ 
+ =item B<< --config <file> >>
+ 
+-Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin.conf]
++Use E<lt>fileE<gt> as configuration file. [@@SCONFDIR@@/munin.conf]
+ 
+ =item B<< --help >>
+ 
+@@ -1323,7 +1323,7 @@
+ 
+ =head1 FILES
+ 
+-	@@CONFDIR@@/munin.conf
++	@@SCONFDIR@@/munin.conf
+ 	@@DBDIR@@/*
+ 	@@LOGDIR@@/munin-update
+ 	@@STATEDIR@@/*
