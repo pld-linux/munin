@@ -177,6 +177,21 @@ rm -rf $RPM_BUILD_ROOT
 %triggerun -- lighttpd
 %webapp_unregister lighttpd %{_webapp}
 
+%triggerpostun -- munin < 1.3.4-5
+# rescue app config
+if [ -f /etc/munin/munin.conf.rpmsave ]; then
+	mv -f %{_webapps}/%{_webapp}/munin.conf{,.rpmnew}
+	mv -f /etc/munin/munin.rpmsave %{_sysconfdir}/munin.conf
+fi
+# move RRDs to new location
+cd /var/lib/munin
+for i in * ; do
+	case "$i" in
+		db|html|plugin-state) ;;
+		*) mv -f "$i" db/ ;;
+	esac
+done
+
 %post node
 if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
