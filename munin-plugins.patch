@@ -912,3 +912,32 @@ diff -Naur munin-1.3.4/node/node.d.linux/nfsd.in munin-1.3.4-p/node/node.d.linux
 -die "Error running iptables. Dying\n" if $?;
 +die "Error running /usr/sbin/iptables. Dying\n" if $?;
  # vim:syntax=perl
+--- munin-1.3.4/node/node.d/amavis.in~	2008-03-08 02:42:39.000000000 +0100
++++ munin-1.3.4/node/node.d/amavis.in	2009-03-16 16:30:48.000000000 +0100
+@@ -59,7 +59,7 @@
+ 
+ 
+ mktempfile () {
+-    $MUNIN_MKTEMP
++    mktemp -p /tmp/ $1
+ }
+ 
+ AMAVIS_LOG=${amavislog:-/var/log/mail/mail.info}
+@@ -87,7 +87,7 @@
+ 
+ if [ "$1" = "config" ]; then
+ 	echo 'graph_title Amavis filter statistics'
+-	echo 'graph_vlabel #'
++	echo 'graph_vlabel mails'
+ 	echo 'graph_category antivirus'
+ 	echo 'virus.label virus'
+ 	echo 'virus.info Number of viruses caught in email'
+@@ -105,7 +105,7 @@
+ spamm=U
+ spams=U
+ 
+-TEMP_FILE=$(mktempfile munin-amavis.XXXXXX)
++TEMP_FILE=$(mktempfile munin-amavis.XXXXXXXXXX)
+ 
+ if [ -n "$TEMP_FILE" -a -f "$TEMP_FILE" ]
+ then
