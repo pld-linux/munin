@@ -181,7 +181,7 @@ rm -rf $RPM_BUILD_ROOT
 # rescue app config
 if [ -f /etc/munin/munin.conf.rpmsave ]; then
 	mv -f %{_webapps}/%{_webapp}/munin.conf{,.rpmnew}
-	mv -f /etc/munin/munin.rpmsave %{_sysconfdir}/munin.conf
+	mv -f /etc/munin/munin.conf.rpmsave %{_sysconfdir}/munin.conf
 fi
 # move RRDs to new location
 cd /var/lib/munin
