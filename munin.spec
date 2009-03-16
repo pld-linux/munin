@@ -29,7 +29,6 @@ Patch5:		%{name}-templatedir.patch
 Patch6:		%{name}-no-junk.patch
 Patch7:		%{name}-separate-configs.patch
 URL:		http://munin.sourceforge.net/
-#BuildRequires:	migrate-to-webapps
 BuildRequires:	html2text
 BuildRequires:	htmldoc
 BuildRequires:	perl-Net-SNMP
@@ -248,7 +247,6 @@ fi
 %files common
 %defattr(644,root,root,755)
 %doc README ChangeLog logo* Checklist
-%dir %{_sysconfdir}
 %dir %{_datadir}/munin
 %attr(770,munin,http) %dir /var/log/munin
 %attr(750,munin,root) %dir /var/log/archive/munin
@@ -256,6 +254,7 @@ fi
 
 %files node
 %defattr(644,root,root,755)
+%dir %{_sysconfdir}
 %dir %{_sysconfdir}/plugins
 %dir %{_sysconfdir}/plugin-conf.d
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin-node.conf
