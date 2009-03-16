@@ -27,8 +27,9 @@ Patch3:		%{name}-group_order.patch
 Patch4:		%{name}-rrdtool-font.patch
 Patch5:		%{name}-templatedir.patch
 Patch6:		%{name}-no-junk.patch
+Patch7:		%{name}-separate-configs.patch
 URL:		http://munin.sourceforge.net/
-BuildRequires:	migrate-to-webapps
+#BuildRequires:	migrate-to-webapps
 BuildRequires:	html2text
 BuildRequires:	htmldoc
 BuildRequires:	perl-Net-SNMP
@@ -123,6 +124,7 @@ Munin.
 %patch4 -p1
 %patch5 -p1
 %patch6 -p1
+%patch7 -p1
 
 %if "%{_lib}" != "lib"
 sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' node/node.d/mailman.in
@@ -133,7 +135,7 @@ sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' node/node.d/mailman.in
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,cron.d,logrotate.d}
+install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_sbindir}}
 install -d $RPM_BUILD_ROOT/var/log/archive/munin
 install -d $RPM_BUILD_ROOT%{_webapps}/%{_webapp}
 
