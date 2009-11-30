@@ -1,6 +1,17 @@
-diff -ur munin-1.3.4/contrib/munin-every-services-all-boxes-build-html.in munin-1.3.4.conf/contrib/munin-every-services-all-boxes-build-html.in
---- munin-1.3.4/contrib/munin-every-services-all-boxes-build-html.in	2008-03-08 02:42:40.000000000 +0100
-+++ munin-1.3.4.conf/contrib/munin-every-services-all-boxes-build-html.in	2008-12-03 23:43:55.000000000 +0100
+diff -ur munin-1.4.0/common/lib/Munin/Common/Defaults.pm munin-1.4.0.template/common/lib/Munin/Common/Defaults.pm
+--- munin-1.4.0/common/lib/Munin/Common/Defaults.pm	2009-11-27 12:17:16.000000000 +0100
++++ munin-1.4.0.template/common/lib/Munin/Common/Defaults.pm	2009-11-30 15:53:32.281661475 +0100
+@@ -30,6 +30,7 @@
+ our $MUNIN_MANDIR     = '';
+ our $MUNIN_LOGDIR     = "$COMPONENT_ROOT/log/";
+ our $MUNIN_STATEDIR   = ''; 
++our $MUNIN_TEMPLATEDIR = ''; 
+ our $MUNIN_USER       = getpwuid $UID;
+ our $MUNIN_GROUP      = getgrgid $GID;
+ our $MUNIN_PLUGINUSER = getpwuid $UID;
+diff -ur munin-1.4.0/contrib/munin-every-services-all-boxes-build-html.in munin-1.4.0.template/contrib/munin-every-services-all-boxes-build-html.in
+--- munin-1.4.0/contrib/munin-every-services-all-boxes-build-html.in	2009-11-27 12:17:18.000000000 +0100
++++ munin-1.4.0.template/contrib/munin-every-services-all-boxes-build-html.in	2009-11-30 15:31:14.400724600 +0100
 @@ -23,7 +23,7 @@
  
    chown @@USER@@.@@GROUP@@ @@HTMLDIR@@/every-services-all-boxes
@@ -10,99 +21,112 @@ diff -ur munin-1.3.4/contrib/munin-every-services-all-boxes-build-html.in munin-
  
   <div class="box">
      <a href=every-services-all-boxes>every services on all boxes</a>
-diff -ur munin-1.3.4/Makefile munin-1.3.4.conf/Makefile
---- munin-1.3.4/Makefile	2008-12-03 23:42:52.000000000 +0100
-+++ munin-1.3.4.conf/Makefile	2008-12-03 23:46:04.000000000 +0100
-@@ -33,7 +33,7 @@
+diff -ur munin-1.4.0/Makefile munin-1.4.0.template/Makefile
+--- munin-1.4.0/Makefile	2009-11-30 15:56:58.665729798 +0100
++++ munin-1.4.0.template/Makefile	2009-11-30 15:43:56.093673451 +0100
+@@ -72,8 +72,8 @@
+ 	$(CHOWN) $(USER) $(LOGDIR) $(STATEDIR)
  
- install-main: build
- 	$(CHECKUSER)
+ install-master-prime: $(INFILES_MASTER) install-pre install-master
 -	mkdir -p $(CONFDIR)/templates
+-	mkdir -p $(CONFDIR)/templates/partial
 +	mkdir -p $(TEMPLATEDIR)
++	mkdir -p $(TEMPLATEDIR)/partial
+ 	mkdir -p $(CONFDIR)/munin-conf.d
  	mkdir -p $(LIBDIR)
  	mkdir -p $(BINDIR)
- 	mkdir -p $(SBINDIR)
-@@ -48,11 +48,11 @@
- 	$(CHOWN) $(USER) $(LOGDIR) $(STATEDIR) $(RUNDIR) $(HTMLDIR) $(DBDIR)
+@@ -87,14 +87,14 @@
+ 	$(CHOWN) $(USER) $(HTMLDIR) $(DBDIR) 
  
- 	for p in build/server/*.tmpl; do    		         \
+ 	for p in master/www/*.tmpl master/www/*.png master/www/*.css resources/favicon.ico; do \
 -		$(INSTALL) -m 0644 "$$p" $(CONFDIR)/templates/ ; \
 +		$(INSTALL) -m 0644 "$$p" $(TEMPLATEDIR)/ ; \
  	done
--	$(INSTALL) -m 0644 server/logo.png $(CONFDIR)/templates/
--	$(INSTALL) -m 0644 server/style.css $(CONFDIR)/templates/
--	$(INSTALL) -m 0644 server/definitions.html $(CONFDIR)/templates/
-+	$(INSTALL) -m 0644 server/logo.png $(TEMPLATEDIR)/
-+	$(INSTALL) -m 0644 server/style.css $(TEMPLATEDIR)/
-+	$(INSTALL) -m 0644 server/definitions.html $(TEMPLATEDIR)/
- 	$(INSTALL) -m 0755 server/VeraMono.ttf $(LIBDIR)/
- 	$(INSTALL) -m 0644 resources/favicon.ico $(HTMLDIR)/
- 	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/server/munin-htaccess $(HTMLDIR)/.htaccess
-@@ -68,11 +68,11 @@
  
- uninstall-main: build
- 	for p in build/server/*.tmpl; do    	    \
--		rm -f $(CONFDIR)/templates/"$$p"  ; \
-+		rm -f $(TEMPLATEDIR)/"$$p"  ; \
- 	done
--	rm -f $(CONFDIR)/templates/logo.png
--	rm -f $(CONFDIR)/templates/style.css
--	rm -f $(CONFDIR)/templates/definitions.html
-+	rm -f $(TEMPLATEDIR)/logo.png
-+	rm -f $(TEMPLATEDIR)/style.css
-+	rm -f $(TEMPLATEDIR)/definitions.html
- 	rm -f $(HTMLDIR)/.htaccess
- 
- 	rm -f $(CONFDIR)/munin.conf 
-@@ -87,7 +87,7 @@
- 	rm -f $(CGIDIR)/munin-cgi-graph
- 
- 	rm -f $(PERLLIB)/Munin.pm 
--	-rmdir $(CONFDIR)/templates
-+	-rmdir $(TEMPLATEDIR)
- 	-rmdir $(CONFDIR)
- 	-rmdir $(LIBDIR)
- 	-rmdir $(BINDIR)
-@@ -257,6 +257,7 @@
- 		    -e 's|@@GOODSH@@|$(GOODSH)|g'			\
- 		    -e 's|@@BASH@@|$(BASH)|g'				\
- 		    -e 's|@@HASSETR@@|$(HASSETR)|g'			\
-+		    -e 's|@@TEMPLATEDIR@@|$(TEMPLATEDIR)|g'		\
- 		    $$file > build/$$destname;				\
+ 	for p in master/www/partial/*.tmpl; do \
+-		$(INSTALL) -m 0644 "$$p" $(CONFDIR)/templates/partial/ ; \
++		$(INSTALL) -m 0644 "$$p" $(TEMPLATEDIR)/partial/ ; \
  	done
  
-diff -ur munin-1.3.4/Makefile.config munin-1.3.4.conf/Makefile.config
---- munin-1.3.4/Makefile.config	2008-12-03 23:42:52.000000000 +0100
-+++ munin-1.3.4.conf/Makefile.config	2008-12-03 23:46:45.000000000 +0100
-@@ -32,6 +32,7 @@
+-	$(INSTALL) -m 0644 master/www/definitions.html $(CONFDIR)/templates/
++	$(INSTALL) -m 0644 master/www/definitions.html $(TEMPLATEDIR)/
+ 	$(INSTALL) -m 0755 master/VeraMono.ttf $(LIBDIR)/
+ 
+ 	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/master/www/munin-htaccess $(HTMLDIR)/.htaccess
+@@ -217,6 +217,7 @@
+              -e 's|@@BASH@@|$(BASH)|g'                          \
+              -e 's|@@HASSETR@@|$(HASSETR)|g'                    \
+              -e 's|@@SSPOOLDIR@@|$(SSPOOLDIR)|g'                \
++             -e 's|@@TEMPLATEDIR@@|$(TEMPLATEDIR)|g'            \
+              $< > $@;
+ 
+ 
+@@ -255,6 +256,7 @@
+                   s{(GOODSH	\s+=\s).*}{\1q{$(GOODSH)};}x;      \
+                   s{(BASH	\s+=\s).*}{\1q{$(BASH)};}x;        \
+                   s{(HASSETR	\s+=\s).*}{\1q{$(HASSETR)};}x;     \
+-	          s{(SSPOOLDIR	\s+=\s).*}{\1q{$(SSPOOLDIR)};}x;'  \
++	          s{(SSPOOLDIR	\s+=\s).*}{\1q{$(SSPOOLDIR)};}x;   \
++	          s{(TEMPLATEDIR	\s+=\s).*}{\1q{$(TEMPLATEDIR)};}x;'  \
+                   $< > $@
+ 
+ build-doc: build-doc-stamp Makefile Makefile.config
+diff -ur munin-1.4.0/Makefile.config munin-1.4.0.template/Makefile.config
+--- munin-1.4.0/Makefile.config	2009-11-30 15:56:58.665729798 +0100
++++ munin-1.4.0.template/Makefile.config	2009-11-30 15:44:54.459859861 +0100
+@@ -40,6 +40,7 @@
  # Server only - Output directory
  HTMLDIR    = $(DESTDIR)/var/lib/munin/html
  CGIDIR     = $(LIBDIR)/cgi
 +TEMPLATEDIR= $(DESTDIR)/etc/webapps/munin/templates
  
- # Client only - Where to put RRD files and other intenal data
- DBDIR      = $(DESTDIR)/var/lib/munin/db
-diff -ur munin-1.3.4/server/munin.conf.in munin-1.3.4.conf/server/munin.conf.in
---- munin-1.3.4/server/munin.conf.in	2008-03-08 02:42:40.000000000 +0100
-+++ munin-1.3.4.conf/server/munin.conf.in	2008-12-03 23:44:43.000000000 +0100
-@@ -9,7 +9,7 @@
- rundir  @@STATEDIR@@
+ # Server only - spool directory for data gathered from nodes by
+ # munin-gather - experimental.  Place on ramdisk to make munin
+diff -ur munin-1.4.0/master/doc/munin.conf.pod.in munin-1.4.0.template/master/doc/munin.conf.pod.in
+--- munin-1.4.0/master/doc/munin.conf.pod.in	2009-11-27 12:17:16.000000000 +0100
++++ munin-1.4.0.template/master/doc/munin.conf.pod.in	2009-11-30 15:51:40.016661676 +0100
+@@ -68,7 +68,7 @@
  
+ Directory for files tracking munin's current running state.  Required.
+ 
+-=item B<tmpldir> I<path> (Default: F<@@CONFDIR@@/templates>)
++=item B<tmpldir> I<path> (Default: F<@@TEMPLATEDIR@@>)
+ 
+ Directory for templates used to generate HTML pages.  Required.
+ 
+diff -ur munin-1.4.0/master/lib/Munin/Master/Config.pm munin-1.4.0.template/master/lib/Munin/Master/Config.pm
+--- munin-1.4.0/master/lib/Munin/Master/Config.pm	2009-11-27 12:17:17.000000000 +0100
++++ munin-1.4.0.template/master/lib/Munin/Master/Config.pm	2009-11-30 15:50:50.533791958 +0100
+@@ -156,7 +156,7 @@
+ 		tls_private_key  => "$Munin::Common::Defaults::MUNIN_CONFDIR/munin.pem",
+ 		tls_verify_certificate => 0,
+ 		tls_verify_depth => 5,
+-		tmpldir          => "$Munin::Common::Defaults::MUNIN_CONFDIR/templates",
++		tmpldir          => $Munin::Common::Defaults::MUNIN_TEMPLATEDIR,
+ 	    }, $class ),
+ 
+ 	    oldconfig => bless ( {
+diff -ur munin-1.4.0/master/lib/Munin/Master/Utils.pm munin-1.4.0.template/master/lib/Munin/Master/Utils.pm
+--- munin-1.4.0/master/lib/Munin/Master/Utils.pm	2009-11-27 12:17:18.000000000 +0100
++++ munin-1.4.0.template/master/lib/Munin/Master/Utils.pm	2009-11-30 15:49:47.135724128 +0100
+@@ -273,7 +273,7 @@
+     $config->{'rundir'}        ||= $Munin::Common::Defaults::MUNIN_STATEDIR;
+     $config->{'dbdir'}         ||= $Munin::Common::Defaults::MUNIN_DBDIR;
+     $config->{'logdir'}        ||= $Munin::Common::Defaults::MUNIN_LOGDIR;
+-    $config->{'tmpldir'}       ||= "$Munin::Common::Defaults::MUNIN_CONFDIR/templates/";
++    $config->{'tmpldir'}       ||= $Munin::Common::Defaults::MUNIN_TEMPLATEDIR;
+     $config->{'htmldir'}       ||= $Munin::Common::Defaults::MUNIN_HTMLDIR;
+     $config->{'spooldir'}      ||= $Munin::Common::Defaults::MUNIN_SSPOOLDIR;
+     $config->{'#%#parent'}     = undef;
+diff -ur munin-1.4.0/master/munin.conf.in munin-1.4.0.template/master/munin.conf.in
+--- munin-1.4.0/master/munin.conf.in	2009-11-27 12:17:18.000000000 +0100
++++ munin-1.4.0.template/master/munin.conf.in	2009-11-30 15:47:40.690849769 +0100
+@@ -11,7 +11,7 @@
+ # rundir  @@STATEDIR@@
+ #
  # Where to look for the HTML templates
--tmpldir	@@CONFDIR@@/templates
-+tmpldir	@@TEMPLATEDIR@@
+-# tmpldir	@@CONFDIR@@/templates
++# tmpldir	@@TEMPLATEDIR@@
  
- # Make graphs show values per minute instead of per second
- #graph_period minute
-diff -ur munin-1.3.4/server/Munin.pm.in munin-1.3.4.conf/server/Munin.pm.in
---- munin-1.3.4/server/Munin.pm.in	2008-12-03 23:42:52.000000000 +0100
-+++ munin-1.3.4.conf/server/Munin.pm.in	2008-12-03 23:44:26.000000000 +0100
-@@ -266,7 +266,7 @@
-     $config->{'rundir'} ||= "/var/lock";
-     $config->{'dbdir'}  ||= "@@DBDIR@@";
-     $config->{'logdir'} ||= "@@LOGDIR@@";
--    $config->{'tmpldir'}||= "@@CONFDIR@@/templates/";
-+    $config->{'tmpldir'}||= "@@TEMPLATEDIR@@/";
-     $config->{'htmldir'}||= "@@HTMLDIR@@/";
-     $config->{'#%#parent'}= undef;
-     $config->{'#%#name'}= "root";
+ # (Exactly one) directory to include all files from.
+ #

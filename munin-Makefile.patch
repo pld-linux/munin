@@ -1,29 +1,27 @@
-diff -Naur munin-1.3.4/Makefile munin-1.3.4-p/Makefile
---- munin-1.3.4/Makefile	Sat Mar  8 07:50:16 2008
-+++ munin-1.3.4-p/Makefile	Fri Apr  4 11:11:10 2008
-@@ -36,6 +36,7 @@
- 	mkdir -p $(CONFDIR)/templates
+--- munin-1.4.0/Makefile~	2009-11-27 12:17:18.000000000 +0100
++++ munin-1.4.0/Makefile	2009-11-30 14:33:15.977700738 +0100
+@@ -77,6 +77,7 @@
+ 	mkdir -p $(CONFDIR)/munin-conf.d
  	mkdir -p $(LIBDIR)
  	mkdir -p $(BINDIR)
 +	mkdir -p $(SBINDIR)
  	mkdir -p $(PERLLIB)
+ 	mkdir -p $(PERLLIB)/Munin/Master
+ 	mkdir -p $(HTMLDIR)
+@@ -99,8 +100,8 @@
+ 	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/master/www/munin-htaccess $(HTMLDIR)/.htaccess
+ 	test -f "$(CONFDIR)/munin.conf"  || $(INSTALL) -m 0644 build/master/munin.conf $(CONFDIR)/
  
- 	mkdir -p $(LOGDIR)
-@@ -56,8 +57,8 @@
- 	$(INSTALL) -m 0644 resources/favicon.ico $(HTMLDIR)/
- 	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/server/munin-htaccess $(HTMLDIR)/.htaccess
- 	test -f "$(CONFDIR)/munin.conf"  || $(INSTALL) -m 0644 build/server/munin.conf $(CONFDIR)/
--	$(INSTALL) -m 0755 build/server/munin-cron $(BINDIR)/
--	$(INSTALL) -m 0755 build/server/munin-check $(BINDIR)/
-+	$(INSTALL) -m 0755 build/server/munin-cron $(SBINDIR)/
-+	$(INSTALL) -m 0755 build/server/munin-check $(LIBDIR)/
- 	$(INSTALL) -m 0755 build/server/munin-update $(LIBDIR)/
- 	$(INSTALL) -m 0755 build/server/munin-graph $(LIBDIR)/
- 	$(INSTALL) -m 0755 build/server/munin-html $(LIBDIR)/
-diff -Naur munin-1.3.4/Makefile.config munin-1.3.4-p/Makefile.config
---- munin-1.3.4/Makefile.config	Sat Mar  8 07:35:13 2008
-+++ munin-1.3.4-p/Makefile.config	Fri Apr  4 11:12:05 2008
-@@ -9,10 +9,10 @@
+-	$(INSTALL) -m 0755 build/master/_bin/munin-cron $(BINDIR)/
+-	$(INSTALL) -m 0755 build/master/_bin/munin-check $(BINDIR)/
++	$(INSTALL) -m 0755 build/master/_bin/munin-cron $(SBINDIR)/
++	$(INSTALL) -m 0755 build/master/_bin/munin-check $(LIBDIR)/
+ 	$(INSTALL) -m 0755 build/master/_bin/munin-update $(LIBDIR)/
+ 	$(INSTALL) -m 0755 build/master/_bin/munin-graph $(LIBDIR)/
+ 	$(INSTALL) -m 0755 build/master/_bin/munin-html $(LIBDIR)/
+--- munin-1.4.0/Makefile.config~	2009-11-27 12:17:18.000000000 +0100
++++ munin-1.4.0/Makefile.config	2009-11-30 14:32:28.827763277 +0100
+@@ -17,10 +17,10 @@
  #
  # the base of the Munin installation.
  # 
@@ -36,7 +34,7 @@ diff -Naur munin-1.3.4/Makefile.config munin-1.3.4-p/Makefile.config
  
  # Server only - where to put munin-cron
  BINDIR     = $(PREFIX)/bin
-@@ -24,21 +24,21 @@
+@@ -32,34 +32,34 @@
  DOCDIR     = $(PREFIX)/doc
  
  # Where to put man pages
@@ -48,10 +46,21 @@ diff -Naur munin-1.3.4/Makefile.config munin-1.3.4-p/Makefile.config
 +LIBDIR     = $(PREFIX)/share/munin
  
  # Server only - Output directory
--HTMLDIR    = $(PREFIX)/var/www
--CGIDIR     = $(HTMLDIR)/cgi
+-HTMLDIR    = $(PREFIX)/www/docs
+-CGIDIR     = $(PREFIX)/www/cgi
 +HTMLDIR    = $(DESTDIR)/var/lib/munin/html
 +CGIDIR     = $(LIBDIR)/cgi
+ 
+ # Server only - spool directory for data gathered from nodes by
+ # munin-gather - experimental.  Place on ramdisk to make munin
+ # scale better.  On many versions of Linux as well as on Solaris
+ # /tmp will be a ramdisk.
+ 
+-SSPOOLDIR  = $(PREFIX)/spool
++SSPOOLDIR  = $(PREFIX)/var/spool/munin
+ 
+ # Suggested directory name for a pulic ramdisk based tmp directory.
+ # SSPOOLDIR := /tmp/muninspool
  
  # Client only - Where to put RRD files and other intenal data
 -DBDIR      = $(DESTDIR)/var/opt/munin
@@ -63,47 +72,52 @@ diff -Naur munin-1.3.4/Makefile.config munin-1.3.4-p/Makefile.config
 +PLUGSTATE  = $(DESTDIR)/var/lib/munin/plugin-state
  
  # Where Munin should place its logs.
- LOGDIR     = $(DESTDIR)/var/log/munin
-@@ -67,14 +67,14 @@
- BASH       = /bin/bash
+-LOGDIR     = $(PREFIX)/log/munin
++LOGDIR     = $(DESTDIR)/var/log/munin
+ 
+ # Location of PID files and other statefiles. On the server, must be
+ # writable by the user "munin".
+@@ -98,7 +98,7 @@
+ BASH       := /bin/bash
  
  # Server only - Where to install the perl libraries
--PERLLIB    = $(DESTDIR)$(shell $(PERL) -V:sitelib | cut -d"'" -f2)
-+PERLLIB    = $(DESTDIR)$(shell $(PERL) -V:vendorlib | cut -d"'" -f2)
+-PERLSITELIB := $(shell $(PERL) -V:sitelib | cut -d"'" -f2)
++PERLSITELIB := $(shell $(PERL) -V:vendorlib | cut -d"'" -f2)
+ PERLLIB    = $(DESTDIR)$(PERLSITELIB)
  
  # Client only - Install plugins for this architecture
- OSTYPE     = $(shell uname | tr '[A-Z]' '[a-z]')
+@@ -106,7 +106,7 @@
  
  # How to figure out the hostname. (Only used in default configuration
  # files)
--HOSTNAME   = $(shell hostname)
-+HOSTNAME   = localhost
+-HOSTNAME   := $(shell hostname)
++HOSTNAME   := localhost
  
  # What is the safest way to create a tempfile.
  # Default is to figure it out by testing various methods.
-@@ -94,9 +94,9 @@
+@@ -126,9 +126,9 @@
  # Which command to use to check if the USER and GROUP to run Munin as, exists.
  # These will work on most modern OSes:
  #
--GETENT = $(shell which getent || which true 2>/dev/null)
--CHECKUSER  = $(shell $(GETENT) passwd $(USER) >/dev/null 2>/dev/null || (echo "echo User $(USER) nonexistant. Create the user and retry; exit 2"))
--CHECKGROUP = $(shell $(GETENT) group $(GROUP) >/dev/null 2>/dev/null || (echo "echo Group $(GROUP) nonexistant. Create the group and retry; exit 2"))
-+GETENT = /bin/true
-+CHECKUSER  = /bin/true
-+CHECKGROUP = /bin/true
+-GETENT     := $(shell which getent || which true 2>/dev/null)
+-CHECKUSER  := $(shell $(GETENT) passwd $(USER) >/dev/null 2>/dev/null || (echo "echo User $(USER) nonexistent. Create the user and retry; exit 2"))
+-CHECKGROUP := $(shell $(GETENT) group $(GROUP) >/dev/null 2>/dev/null || (echo "echo Group $(GROUP) nonexistent. Create the group and retry; exit 2"))
++GETENT     := /bin/true
++CHECKUSER  := /bin/true
++CHECKGROUP := /bin/true
  
  # For OSX, comment out the previous two lines and comment in these
  #
-@@ -112,9 +112,9 @@
+@@ -146,9 +146,9 @@
+ #CHECKUSER  := $(shell pwget -n $(USER) >/dev/null 2>/dev/null || (echo "echo User $(USER) nonexistent. Create the user and retry; exit 2"))
+ #CHECKGROUP := $(shell grget -n $(GROUP) >/dev/null 2>/dev/null || (echo "echo Group $(GROUP) nonexistent. Create the group and retry; exit 2"))
  
+-CHOWN      := chown
+-CHMOD      := chmod
+-CHGRP      := chgrp
++CHOWN      := /bin/true
++CHMOD      := /bin/true
++CHGRP      := /bin/true
  
- 
--CHOWN      = chown
--CHMOD      = chmod
--CHGRP      = chgrp
-+CHOWN      = /bin/true
-+CHMOD      = /bin/true
-+CHGRP      = /bin/true
- 
- # Check whether setruid functionality can be used
- HASSETR = $(shell perl -e 'use Config; my @vars=("d_setruid", "d_setreuid", "d_setresuid"); foreach my $$var (@vars) { if ($$Config{$$var} eq "define") { print "1\n"; exit 0; } } print "0\n"; exit 0;' )
+ # Java compiler stuff - only needed on the buildhost
+ JC         := javac
