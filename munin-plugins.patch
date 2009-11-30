@@ -899,3 +899,75 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
      print "graph_category sensors\n";
      print "graph_info This graph shows the temperature in degrees Celsius of the hard drives in the machine.\n";
      print "$_.label $_\n" foreach @drives;
+--- munin-1.4.0/plugins/node.d.linux/vserver_cpu_.in~	2009-11-27 12:17:05.000000000 +0100
++++ munin-1.4.0/plugins/node.d.linux/vserver_cpu_.in	2009-11-30 23:37:51.904724363 +0100
+@@ -209,11 +209,11 @@
+ 			NAME=`echo $LABEL | cut -d. -f1 |  tr '-' '_'`
+ 			echo -n "${NAME}_$j.value "
+ 			if [ "$MODE" == "cpu" ] ; then
+-				USERCPU=`cat /proc/virtual/$i/sched |grep "cpu $j"| cut -d' ' -f3`
+-				SYSCPU=`cat /proc/virtual/$i/sched |grep "cpu $j"| cut -d' ' -f4`
++				USERCPU=`cat /proc/virtual/$i/sched |grep "cpu $j:"| cut -d' ' -f3`
++				SYSCPU=`cat /proc/virtual/$i/sched |grep "cpu $j:"| cut -d' ' -f4`
+ 	 			echo $[$USERCPU + $SYSCPU]
+ 			else
+-				cat /proc/virtual/$i/sched |grep "cpu $j"| cut -d' ' -f5
++				cat /proc/virtual/$i/sched |grep "cpu $j:"| cut -d' ' -f5
+ 			fi
+ 		fi	
+ 	done
+--- munin-1.4.0/plugins/node.d/amavis.in~	2009-11-30 22:51:19.559661327 +0100
++++ munin-1.4.0/plugins/node.d/amavis.in	2009-11-30 23:58:17.188697242 +0100
+@@ -81,7 +81,7 @@
+ 
+ AMAVIS_LOG=${amavislog:-/var/log/mail/mail.info}
+ LOGTAIL=${logtail:-logtail}
+-STATEFILE=$MUNIN_PLUGSTATE/amavis.offset
++STATEFILE=@@PLUGSTATE@@/amavis.offset
+ 
+ if [ "$1" = "autoconf" ]; then
+         if [ -f "${AMAVIS_LOG}" -a -n "${LOGTAIL}" -a -x "${LOGTAIL}" ] ; then
+--- munin-1.4.0/plugins/node.d/bind9.in~	2009-11-30 22:51:19.454661434 +0100
++++ munin-1.4.0/plugins/node.d/bind9.in	2009-11-30 23:58:58.897786717 +0100
+@@ -33,7 +33,7 @@
+ use strict;
+ 
+ my $QUERYLOG = $ENV{logfile} || '/var/log/bind9/query.log';
+-my $STATEFILE= $ENV{MUNIN_PLUGSTATE}.'/bind9.state';
++my $STATEFILE= "@@PLUGSTATE@@/bind9.state";
+ my $OTHER=0;
+ my %IN;
+ 
+--- munin-1.4.0/plugins/node.d/foldingathome_rank.in~	2009-11-27 12:17:10.000000000 +0100
++++ munin-1.4.0/plugins/node.d/foldingathome_rank.in	2009-12-01 00:00:55.992661939 +0100
+@@ -13,7 +13,7 @@
+ #%# family=contrib
+ #%# capabilities=autoconf
+ 
+-statefile=$MUNIN_PLUGSTATE/plugin-fah_rank.state
++statefile=@@PLUGSTATE@@/plugin-fah_rank.state
+ 
+ if [ "$1" = "autoconf" ]; then
+     # No real check of anything
+--- munin-1.4.0/plugins/node.d/postfix_mailstats.in~	2009-11-30 22:51:19.692786705 +0100
++++ munin-1.4.0/plugins/node.d/postfix_mailstats.in	2009-12-01 00:01:23.586665321 +0100
+@@ -51,7 +51,7 @@
+ 
+ =cut
+ 
+-my $statefile = "$MUNIN_PLUGSTATE/munin-plugin-postfix_mailstats.state";
++my $statefile = "@@PLUGSTATE@@/munin-plugin-postfix_mailstats.state";
+ my $pos;
+ my $delivered = 0;
+ my $rejects = {};
+--- munin-1.4.0/plugins/node.d.linux/files_.in~	2009-11-27 12:17:05.000000000 +0100
++++ munin-1.4.0/plugins/node.d.linux/files_.in	2009-12-01 00:03:16.224727207 +0100
+@@ -14,7 +14,7 @@
+ #%# capabilities=autoconf
+ 
+ PROC=${0##*/files_}
+-TMPFILE="$MUNIN_PLUGSTATE/munin-files_${PROC}.state"
++TMPFILE="@@PLUGSTATE@@/munin-files_${PROC}.state"
+ 
+ if [ "$1" = "autoconf" ]; then
+ 	if [ -x /usr/sbin/lsof ]; then
