@@ -454,7 +454,7 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/HTMLOld.pm munin-1.4.0.configs/mast
      --host <host>	Compatability. No effect.
      --config <file>	Use <file> as configuration file. 
 -			[/etc/munin/munin.conf]
-+			[@@MCONFDIR@@/munin.conf]
++			[$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.conf]
  
  ";
      exit 0;
@@ -493,7 +493,7 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/LimitsOld.pm munin-1.4.0.configs/ma
      			--contact options may be supplied.
      --config <file>	Use <file> as configuration file. 
 -    			[/etc/munin/munin.conf]
-+    			[@@MCONFDIR@@/munin.conf]
++    			[$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.conf]
  
  ";
      exit 0;
