@@ -991,8 +991,8 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  	printf "$name.value "
  	echo $i | cut -d"|" -f3
  done
---- BUILD/munin-1.4.0/plugins/node.d/slapd_.in~	2009-11-27 12:17:11.000000000 +0100
-+++ BUILD/munin-1.4.0/plugins/node.d/slapd_.in	2009-12-01 23:43:43.736623052 +0100
+--- munin-1.4.0/plugins/node.d/slapd_.in~	2009-11-27 12:17:11.000000000 +0100
++++ munin-1.4.0/plugins/node.d/slapd_.in	2009-12-01 23:43:43.736623052 +0100
 @@ -36,8 +36,8 @@
  
  # Change these to reflect your LDAP ACL. The given DN must have
