@@ -22,14 +22,14 @@ diff -Naur munin-1.3.4/dists/tarball/plugins.conf munin-1.3.4-p/dists/tarball/pl
 +
 +[mailman]
 +user mailman
-+group mailman
++group (mailman)
 +
 +[bind9_rndc]
-+group named
++group (named)
 +env.querystats /var/lib/named/named.stats
 +
 +[squid*]
-+group squid
++group (squid)
 +#env.squidport 3128
 +#env.squiduser manager
 +#env.squidpasswd <SECRET>
