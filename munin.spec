@@ -25,6 +25,7 @@ Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-templatedir.patch
 Patch3:		%{name}-separate-configs.patch
+Patch4:		%{name}-timeout.patch
 URL:		http://munin.sourceforge.net/
 BuildRequires:	html2text
 BuildRequires:	htmldoc
@@ -116,6 +117,7 @@ Munin.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
+%patch4 -p1
 
 %if "%{_lib}" != "lib"
 sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' plugins/node.d/mailman.in
