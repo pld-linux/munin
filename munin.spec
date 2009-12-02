@@ -10,7 +10,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.4.0
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/WWW
 Source0:	http://dl.sourceforge.net/munin/%{name}_%{version}.tar.gz
@@ -124,7 +124,7 @@ sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' plugins/node.d/mailman.in
 %endif
 
 %build
-%{__make} build
+%{__make} build JCVALID=no
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -133,6 +133,7 @@ install -d $RPM_BUILD_ROOT/var/log/archive/munin
 install -d $RPM_BUILD_ROOT%{_webapps}/%{_webapp}
 
 %{__make} install \
+	JCVALID=no \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
