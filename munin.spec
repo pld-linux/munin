@@ -124,7 +124,7 @@ sed -i -e 's|/usr/lib/mailman|%{_libdir}/mailman|g' plugins/node.d/mailman.in
 %endif
 
 %build
-%{__make} build JCVALID=no
+%{__make} -j1 build JCVALID=no
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -132,7 +132,7 @@ install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_s
 install -d $RPM_BUILD_ROOT/var/log/archive/munin
 install -d $RPM_BUILD_ROOT%{_webapps}/%{_webapp}
 
-%{__make} install \
+%{__make} -j1 install \
 	JCVALID=no \
 	DESTDIR=$RPM_BUILD_ROOT
 
