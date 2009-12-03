@@ -1004,3 +1004,214 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  my $userdn = ($ENV{'binddn'} || '');
  my $userpw = ($ENV{'bindpw'} || '');
  
+--- munin/plugins/node.d.linux/vserver_resources.in~	2008-11-28 18:36:22.000000000 +0100
++++ munin/plugins/node.d.linux/vserver_resources.in	2008-11-29 01:39:40.000000000 +0100
+@@ -188,6 +188,12 @@
+ 	    echo 'graph_vlabel ANON pages'
+ 	    echo 'graph_info Shows anonymous memory (human readable) used by each vserver.'
+ 	    ;;
++	RMAP)
++	    echo 'graph_title Mapped memory used by vserver'
++	    echo 'graph_args --base 1024k -l 0'
++	    echo 'graph_vlabel RMAP pages'
++	    echo 'graph_info Shows mapped memory (human readable) used by each vserver.'
++	    ;;
+ 	FILES)
+ 	    echo 'graph_title Files used by vserver'
+ 	    echo 'graph_args --base 1024k -l 0'
+@@ -224,6 +230,30 @@
+ 	    echo 'graph_vlabel SHM pages'
+ 	    echo 'graph_info Shows shared memory (human readable) used by each vserver.'
+ 	    ;;
++	SEMA)
++	    echo 'graph_title Semaphore arrays used by vserver'
++	    echo 'graph_args --base 1024k -l 0'
++	    echo 'graph_vlabel Semaphore arrays'
++	    echo 'graph_info Shows semaphore arrays used by each vserver.'
++	    ;;
++	SEMS)
++	    echo 'graph_title Semaphores used by vserver'
++	    echo 'graph_args --base 1024k -l 0'
++	    echo 'graph_vlabel Semaphores'
++	    echo 'graph_info Shows semaphores used by each vserver.'
++	    ;;
++	DENT)
++	    echo 'graph_title dentry structs used by vserver'
++	    echo 'graph_args --base 1024k -l 0'
++	    echo 'graph_vlabel dentry structs'
++	    echo 'graph_info Shows dentry structs used by each vserver.'
++	    ;;
++	ALL)
++	    echo 'graph_title Resources used by vserver'
++	    echo 'graph_args --base 1024k -l 0'
++	    echo 'graph_vlabel Resources'
++	    echo 'graph_info Shows rsources used by each vserver.'
++	    ;;
+ 	*)
+ 	    echo "$RESOURCE not defined."
+ 	    exit 1
+@@ -242,53 +272,108 @@
+ 
+ 	case "$RESOURCE" in
+ 	    PROC)
+-		echo "$NAME.label $LABEL: processes"
+-		echo "$NAME.info Number of processes used by $LABEL."
++		echo "${NAME}_PROC.label $LABEL: processes"
++		echo "${NAME}_PROC.info Number of processes used by $LABEL."
+ 		;;
+ 	    VM)
+-		echo "$NAME.label $LABEL: Virtual memory"
+-		echo "$NAME.info Size of virtual memory used by $LABEL. (Number multipled by $pagesize to make it human readable)"
+-		echo "$NAME.cdef $NAME,$pagesize,*"
++		echo "${NAME}_VM.label $LABEL: Virtual memory"
++		echo "${NAME}_VM.info Size of virtual memory used by $LABEL. (Number multipled by $pagesize to make it human readable)"
++		echo "${NAME}_VM.cdef ${NAME}_VM,$pagesize,*"
+ 		;;
+ 	    VML)
+-		echo "$NAME.label $LABEL: Locked memory"
+-		echo "$NAME.info Size of locked memory used by $LABEL. (Number multipled by $pagesize to make it human readable)"
+-		echo "$NAME.cdef $NAME,$pagesize,*"
++		echo "${NAME}_VML.label $LABEL: Locked memory"
++		echo "${NAME}_VML.info Size of locked memory used by $LABEL. (Number multipled by $pagesize to make it human readable)"
++		echo "${NAME}_VML.cdef ${NAME}_VML,$pagesize,*"
+ 		;;
+ 	    RSS)
+-		echo "$NAME.label $LABEL: Resident set size"
+-		echo "$NAME.info Size of resident set size used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
+-		echo "$NAME.cdef $NAME,$pagesize,*"
++		echo "${NAME}_RSS.label $LABEL: Resident set size"
++		echo "${NAME}_RSS.info Size of resident set size used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_RSS.cdef ${NAME}_RSS,$pagesize,*"
+ 		;;
+ 	    ANON)
+-		echo "$NAME.label $LABEL: Anonymous memory"
+-		echo "$NAME.info Size of anonymous memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
+-		echo "$NAME.cdef $NAME,$pagesize,*"
++		echo "${NAME}_ANON.label $LABEL: Anonymous memory"
++		echo "${NAME}_ANON.info Size of anonymous memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_ANON.cdef ${NAME}_ANON,$pagesize,*"
++		;;
++	    RMAP)
++		echo "${NAME}_RMAP.label $LABEL: Mapped memory"
++		echo "${NAME}_RMAP.info Size of mapped memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_RMAP.cdef ${NAME}_RMAP,$pagesize,*"
+ 		;;
+ 	    FILES)
+-		echo "$NAME.label $LABEL: Files"
+-		echo "$NAME.info Number of files used by $LABEL."
++		echo "${NAME}_FILES.label $LABEL: Files"
++		echo "${NAME}_FILES.info Number of files used by $LABEL."
+ 		;;
+ 	    OFD)
+-		echo "$NAME.label $LABEL: Open filedescriptors"
+-		echo "$NAME.info Number of open filedescriptors used by $LABEL."
++		echo "${NAME}_OFD.label $LABEL: Open filedescriptors"
++		echo "${NAME}_OFD.info Number of open filedescriptors used by $LABEL."
+ 		;;
+ 	    LOCKS)
+-		echo "$NAME.label $LABEL: Locks"
+-		echo "$NAME.info Number of locks used by $LABEL."
++		echo "${NAME}_LOCKS.label $LABEL: Locks"
++		echo "${NAME}_LOCKS.info Number of locks used by $LABEL."
+ 		;;
+ 	    SOCK)
+-		echo "$NAME.label $LABEL: Sockets"
+-		echo "$NAME.info Number of sockets used by $LABEL."
++		echo "${NAME}_SOCK.label $LABEL: Sockets"
++		echo "${NAME}_SOCK.info Number of sockets used by $LABEL."
+ 		;;
+ 	    MSGQ)
+-		echo "$NAME.label $LABEL: Message queues"
+-		echo "$NAME.info Number of message queues used by $LABEL."
++		echo "${NAME}_MSGQ.label $LABEL: Message queues"
++		echo "${NAME}_MSGQ.info Number of message queues used by $LABEL."
+ 		;;
+ 	    SHM)
+-		echo "$NAME.label $LABEL: Shared memory"
+-		echo "$NAME.info Size of shared memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
+-		echo "$NAME.cdef $1,$pagesize,*"
++		echo "${NAME}_SHM.label $LABEL: Shared memory"
++		echo "${NAME}_SHM.info Size of shared memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_SHM.cdef ${NAME}_SHM,$pagesize,*"
++		;;
++	    SEMA)
++		echo "${NAME}_SEMA.label $LABEL: Semaphore arrays"
++		echo "${NAME}_SEMA.info Number of semaphore arrays used by $LABEL."
++		;;
++	    SEMS)
++		echo "${NAME}_SEMS.label $LABEL: Semaphores"
++		echo "${NAME}_SEMS.info Number of semaphores used by $LABEL."
++		;;
++	    DENT)
++		echo "${NAME}_DENT.label $LABEL: dentry structs"
++		echo "${NAME}_DENT.info Number of dentries used by $LABEL."
++		;;
++	    ALL)
++		echo "${NAME}_PROC.label $LABEL: processes"
++		echo "${NAME}_PROC.info Number of processes used by $LABEL."
++		echo "${NAME}_VM.label $LABEL: Virtual memory"
++		echo "${NAME}_VM.info Size of virtual memory used by $LABEL. (Number multipled by $pagesize to make it human readable)"
++		echo "${NAME}_VM.cdef ${NAME}_VM,$pagesize,*"
++		echo "${NAME}_VML.label $LABEL: Locked memory"
++		echo "${NAME}_VML.info Size of locked memory used by $LABEL. (Number multipled by $pagesize to make it human readable)"
++		echo "${NAME}_VML.cdef ${NAME}_VML,$pagesize,*"
++		echo "${NAME}_RSS.label $LABEL: Resident set size"
++		echo "${NAME}_RSS.info Size of resident set size used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_RSS.cdef ${NAME}_RSS,$pagesize,*"
++		echo "${NAME}_ANON.label $LABEL: Anonymous memory"
++		echo "${NAME}_ANON.info Size of anonymous memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_ANON.cdef ${NAME}_ANON,$pagesize,*"
++		echo "${NAME}_RMAP.label $LABEL: Mapped memory"
++		echo "${NAME}_RMAP.info Size of mapped memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_RMAP.cdef ${NAME}_RMAP,$pagesize,*"
++		echo "${NAME}_FILES.label $LABEL: Files"
++		echo "${NAME}_FILES.info Number of files used by $LABEL."
++		echo "${NAME}_OFD.label $LABEL: Open filedescriptors"
++		echo "${NAME}_OFD.info Number of open filedescriptors used by $LABEL."
++		echo "${NAME}_LOCKS.label $LABEL: Locks"
++		echo "${NAME}_LOCKS.info Number of locks used by $LABEL."
++		echo "${NAME}_SOCK.label $LABEL: Sockets"
++		echo "${NAME}_SOCK.info Number of sockets used by $LABEL."
++		echo "${NAME}_MSGQ.label $LABEL: Message queues"
++		echo "${NAME}_MSGQ.info Number of message queues used by $LABEL."
++		echo "${NAME}_SHM.label $LABEL: Shared memory"
++		echo "${NAME}_SHM.info Size of shared memory used by $LABEL. (Number multiplied by $pagesize to make it human readable)"
++		echo "${NAME}_SHM.cdef ${NAME}_SHM,$pagesize,*"
++		echo "${NAME}_SEMA.label $LABEL: Semaphore arrays"
++		echo "${NAME}_SEMA.info Number of semaphore arrays used by $LABEL."
++		echo "${NAME}_SEMS.label $LABEL: Semaphores"
++		echo "${NAME}_SEMS.info Number of semaphores used by $LABEL."
++		echo "${NAME}_DENT.label $LABEL: dentry structs"
++		echo "${NAME}_DENT.info Number of dentries used by $LABEL."
+ 		;;
+ 	    *)
+ 		echo "$RESOURCE not defined."
+@@ -299,7 +384,7 @@
+ 	if [ ! -z "$LIMITS" -a "$LIMITS" = 1 ]; then
+ 	    LIMIT=`cat /proc/virtual/$xid/limit | grep $RESOURCE | cut -f4`
+ 	    if [ ${LIMIT:-0} -gt 0 ]; then
+-		echo "$NAME.critical $LIMIT"
++		echo "${NAME}_${RESOURCE}.critical $LIMIT"
+ 	    fi
+ 	fi
+     done
+@@ -310,8 +395,15 @@
+ for xid in $XIDS ; do
+     LABEL=`cat /proc/virtual/$xid/$NAMELOC |grep NodeName |cut -f2`
+     NAME=`echo $LABEL | cut -d. -f1 |  tr '-' '_'`
+-    cat /proc/virtual/$xid/limit | awk -v name="${NAME}" -v resource="${RESOURCE}:" \
+-	'{ if ( $1 == resource )
+-            printf "%s.value %d\n", name, $2 }'
++    if [ $RESOURCE = "ALL" ]; then
++    cat /proc/virtual/$xid/limit | awk -v name="${NAME}" \
++	'{ if ( $1 ~ /[A-Z]*:/ ) {
++            resource = $1 ; gsub(/:/, "", resource);
++            printf "%s_%s.value %d\n", name, resource, $2
++           }}'
++    else
++    cat /proc/virtual/$xid/limit | awk -v name="${NAME}" -v resource="${RESOURCE}" \
++	'{ if ( $1 ~ resource )
++            printf "%s_%s.value %d\n", name, resource, $2 }'
++    fi
+ done
+-
