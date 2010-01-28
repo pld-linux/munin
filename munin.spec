@@ -32,7 +32,9 @@ BuildRequires:	htmldoc
 BuildRequires:	perl-Net-SNMP
 BuildRequires:	perl-devel
 BuildRequires:	rpm-perlprov
+BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	which
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
