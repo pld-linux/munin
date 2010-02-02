@@ -4,7 +4,7 @@
          tls     => undef,
          socket  => undef,
          master_capabilities => qw(multigraph),
--        io_timeout => 5,
+-        io_timeout => 120,
 +        io_timeout => $config->{timeout},
  	configref => $configref,
      };

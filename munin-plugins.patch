@@ -576,9 +576,9 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/load.in munin-1.3.4-p/plugins/node.d
  	# one is for the graph itself, while the second one is for the field
  	# "load".
 -	echo 'graph_info The load average of the machine describes how many processes are in the run-queue (scheduled to run "immediately").'
--	echo 'load.info Average load for the five minutes.'
+-	echo 'load.info 5 minute load average'
 +	echo "graph_info The load average of the machine describes how many processes are in the run-queue (scheduled to run \"immediately\")."
-+	echo "load.info Average load for the five minutes."
++	echo "load.info 5 minute load average"
  
  	# Last, if run with the "config"-parameter, quit here (don't
  	# display any data)
@@ -781,11 +781,11 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  if [ "$1" = "suggest" ]; then
 -    iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
 +    /usr/sbin/iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
--#    if [ -x /sbin/ip6tables ]; then
--# 	ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
-+#    if [ -x /usr/sbin/ip6tables ]; then
-+# 	/usr/sbin/ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
- #    fi
+-    if [ -x /sbin/ip6tables ]; then
+- 	ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
++    if [ -x /usr/sbin/ip6tables ]; then
++ 	/usr/sbin/ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
+     fi
      exit 0
  fi
 @@ -84,8 +84,8 @@
@@ -912,17 +912,6 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
      print "$_.label $_\n" foreach @drives;
 --- munin-1.4.0/plugins/node.d.linux/vserver_cpu_.in~	2009-11-27 12:17:05.000000000 +0100
 +++ munin-1.4.0/plugins/node.d.linux/vserver_cpu_.in	2009-11-30 23:37:51.904724363 +0100
-@@ -80,8 +80,8 @@
- =item Less use of /proc
- 
- use /proc less often (100 times more overhead than talking to the
--kernel directly) i.e. use something like pagesize=`perl -MPOSIX -e
--'print POSIX::sysconf(_SC_PAGESIZE), "\n";'`
-+kernel directly) i.e. use something like pagesize=\`perl -MPOSIX -e
-+'print POSIX::sysconf(_SC_PAGESIZE), "\n";'\`
- 
- =back
- 
 @@ -209,11 +209,11 @@
  			NAME=`echo $LABEL | cut -d. -f1 |  tr '-' '_'`
  			echo -n "${NAME}_$j.value "
@@ -971,17 +960,6 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  
  if [ "$1" = "autoconf" ]; then
      # No real check of anything
---- munin-1.4.0/plugins/node.d/postfix_mailstats.in~	2009-11-30 22:51:19.692786705 +0100
-+++ munin-1.4.0/plugins/node.d/postfix_mailstats.in	2009-12-01 00:01:23.586665321 +0100
-@@ -51,7 +51,7 @@
- 
- =cut
- 
--my $statefile = "$MUNIN_PLUGSTATE/munin-plugin-postfix_mailstats.state";
-+my $statefile = "@@PLUGSTATE@@/munin-plugin-postfix_mailstats.state";
- my $pos;
- my $delivered = 0;
- my $rejects = {};
 --- munin-1.4.0/plugins/node.d.linux/files_.in~	2009-11-27 12:17:05.000000000 +0100
 +++ munin-1.4.0/plugins/node.d.linux/files_.in	2009-12-01 00:03:16.224727207 +0100
 @@ -14,7 +14,7 @@
@@ -993,26 +971,6 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  
  if [ "$1" = "autoconf" ]; then
  	if [ -x /usr/sbin/lsof ]; then
---- munin-1.4.0/plugins/node.d/munin_update.in~	2009-11-27 12:17:11.000000000 +0100
-+++ munin-1.4.0/plugins/node.d/munin_update.in	2009-12-01 14:46:33.749288924 +0100
-@@ -35,7 +35,7 @@
- 	echo 'graph_category munin'
- 	[ -f $UPDATE_STATSFILE ] || exit 0
- 	cat $UPDATE_STATSFILE | grep "UD" | while read i; do
--		name=`echo $i | cut -d"|" -f2 |tr  '.-' '__'`
-+		name=`echo $i | cut -d"|" -f2 |tr  ';.-' '___'`
- 		printf "$name.label "
- 		echo $i | cut -d"|" -f2
- 		echo "$name.warning 100"
-@@ -47,7 +47,7 @@
- [ -f $UPDATE_STATSFILE ] || exit 0
- 
- cat $UPDATE_STATSFILE | grep "UD" | while read i; do
--        name=`echo $i | cut -d"|" -f2 | tr  '.-' '__'`
-+        name=`echo $i | cut -d"|" -f2 | tr  ';.-' '___'`
- 	printf "$name.value "
- 	echo $i | cut -d"|" -f3
- done
 --- munin-1.4.0/plugins/node.d/slapd_.in~	2009-11-27 12:17:11.000000000 +0100
 +++ munin-1.4.0/plugins/node.d/slapd_.in	2009-12-01 23:43:43.736623052 +0100
 @@ -36,8 +36,8 @@
@@ -1028,17 +986,6 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  
 --- munin/plugins/node.d.linux/vserver_resources.in~	2008-11-28 18:36:22.000000000 +0100
 +++ munin/plugins/node.d.linux/vserver_resources.in	2008-11-29 01:39:40.000000000 +0100
-@@ -151,8 +151,8 @@
- =item Use /proc less often
- 
- use /proc less often (100 times more overhead than talking to the
--kernel directly) i.e. use something like pagesize=`perl -MPOSIX -e
--'print POSIX::sysconf(_SC_PAGESIZE), "\n";'`
-+kernel directly) i.e. use something like pagesize=\`perl -MPOSIX -e
-+'print POSIX::sysconf(_SC_PAGESIZE), "\n";'\`
- 
- =back
- 
 @@ -188,6 +188,12 @@
  	    echo 'graph_vlabel ANON pages'
  	    echo 'graph_info Shows anonymous memory (human readable) used by each vserver.'
