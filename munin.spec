@@ -27,14 +27,13 @@ Patch2:		%{name}-templatedir.patch
 Patch3:		%{name}-separate-configs.patch
 Patch4:		%{name}-timeout.patch
 URL:		http://munin.sourceforge.net/
-BuildRequires:	html2text
-BuildRequires:	htmldoc
 BuildRequires:	perl-Net-SNMP
 BuildRequires:	perl-devel
 BuildRequires:	rpm-perlprov
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	which
+Requires(triggerpostun):	sed >= 4.0
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
@@ -45,7 +44,6 @@ Requires:	webserver(alias)
 Requires:	webserver(auth)
 Requires:	webserver(cgi)
 Requires:	webserver(expires)
-Requires(triggerpostun):	sed >= 4.0
 Conflicts:	logrotate < 3.7-4
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
