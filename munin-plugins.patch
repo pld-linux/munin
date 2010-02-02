@@ -1296,6 +1296,15 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  );
  
  
+@@ -296,7 +296,7 @@
+ 	global_attrs => {
+ 	    title  => 'InnoDB Buffer Pool',
+ 	    vlabel => 'Pages',
+-	    base   => '1024',
++	    args   => '--base 1024',
+ 	},
+ 	data_source_attrs => {
+ 	    draw => 'LINE2',
 @@ -900,8 +902,10 @@
  
      update_variables($dbh);
