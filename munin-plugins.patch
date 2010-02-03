@@ -280,6 +280,29 @@ diff -Naur munin-1.3.4/plugins/node.d/cupsys_pages.in munin-1.3.4-p/plugins/node
 diff -Naur munin-1.3.4/plugins/node.d/mailman.in munin-1.3.4-p/plugins/node.d/mailman.in
 --- munin-1.3.4/plugins/node.d/mailman.in	Sat Mar  8 02:42:39 2008
 +++ munin-1.3.4-p/plugins/node.d/mailman.in	Fri Apr  4 11:13:06 2008
+@@ -24,7 +24,7 @@
+ 
+ =cut
+ 
+-$statefile = "$MUNIN_PLUGSTATE/munin-mailman-log.state";
++$statefile = "$ENV{MUNIN_PLUGSTATE}/munin-mailman-log.state";
+ $pos = undef;
+ $posts = 0;
+ $members = 0;
+@@ -32,7 +32,12 @@
+ # System paths (as known to mailman-limacute
+ $logfile = "/var/log/mailman/post";
+ $libdir  = "/var/lib/mailman";
+-$lister  = "/usr/lib/mailman/bin/list_members";
++
++if (-f "/usr/lib64/mailman/bin/list_members") {
++    $lister  = "/usr/lib64/mailman/bin/list_members";
++} else {
++    $lister  = "/usr/lib/mailman/bin/list_members";
++}
+ 
+ if (-f "$logfile.0")
+ {
 @@ -69,7 +69,9 @@
  
  if($startsize < $pos) {
