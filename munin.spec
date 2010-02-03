@@ -10,7 +10,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.4.3
-Release:	2
+Release:	3
 License:	GPL
 Group:		Applications/WWW
 Source0:	http://dl.sourceforge.net/munin/%{name}-%{version}.tar.gz
@@ -35,6 +35,7 @@ BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	which
 Requires(triggerpostun):	sed >= 4.0
 Requires:	%{name}-common = %{version}-%{release}
+Requires:	fonts-TTF-DejaVu
 Requires:	perl-Date-Manip
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
@@ -226,8 +227,6 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/cron.d/munin
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin
 %attr(755,root,root) %{_sbindir}/munin-cron
-%{_datadir}/munin/DejaVuSansMono.ttf
-%{_datadir}/munin/DejaVuSans.ttf
 %attr(755,root,root) %{_datadir}/munin/munin-check
 %attr(755,root,root) %{_datadir}/munin/munin-graph
 %attr(755,root,root) %{_datadir}/munin/munin-html
