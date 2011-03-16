@@ -789,12 +789,18 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
 +}' $NFSD
 --- munin-1.3.4/plugins/node.d.linux/ip_.in~	2008-03-08 02:42:39.000000000 +0100
 +++ munin-1.3.4/plugins/node.d.linux/ip_.in	2008-05-20 13:00:17.000000000 +0200
-@@ -40,16 +40,16 @@
+@@ -113,15 +113,19 @@
+     *:*) # I know this! This is IPv6!
  	# This is a fun hack to make the plugin ip6 compatible.
  	# Suggested in ticket #439 by "jodal".
- 	eval 'function iptables() {
+-	eval 'function iptables() {
 -	    /sbin/ip6tables "$@"
++	eval 'iptables() {
 +	    /usr/sbin/ip6tables "$@"
++	}'
++	;;
++    *) eval 'iptables() {
++	    /usr/sbin/iptables "$@"
  	}'
  	;;
  esac
@@ -804,33 +810,30 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
 -		iptables -L ${INPUT} -v -n -x >/dev/null 2>/dev/null
 +		/usr/sbin/iptables -L ${INPUT} -v -n -x >/dev/null 2>/dev/null
  		if [ $? -gt 0 ]; then
--			echo "no (could not run iptables as user `whoami`)"
-+			echo "no (could not run /usr/sbin/iptables as user `whoami`)"
+ 			echo "no (could not run iptables as user `whoami`)"
  			exit 0
- 		else
- 			echo yes
-@@ -62,9 +62,9 @@
+@@ -136,9 +140,9 @@
  fi
  
  if [ "$1" = "suggest" ]; then
 -    iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
-+    /usr/sbin/iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
 -    if [ -x /sbin/ip6tables ]; then
 - 	ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
++    /usr/sbin/iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
 +    if [ -x /usr/sbin/ip6tables ]; then
 + 	/usr/sbin/ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
      fi
      exit 0
  fi
-@@ -173,6 +173,6 @@
+@@ -173,6 +177,5 @@
  # Escape .'s so they don't match _everything_?
  IP="$( echo $IP | sed 's~\.~\\.~g' )"
  
 -iptables -L ${INPUT} -v -n -x   | awk "/$IP"'[ /]/ { print "in.value " $2; exit 0; }'
-+/usr/sbin/iptables -L ${INPUT} -v -n -x   | awk "/$IP"'[ /]/ { print "in.value " $2; exit 0; }'
- 
+-
 -iptables -L ${OUTPUT} -v -n -x  | awk "/$IP"'[ /]/ { print "out.value " $2; exit 0; }'
-+/usr/sbin/iptables -L ${OUTPUT} -v -n -x  | awk "/$IP"'[ /]/ { print "out.value " $2; exit 0; }'
++iptables -L ${INPUT} -v -n -x   | awk "/$IP"'[ \/]/ { print "in.value " $2; exit 0; }'
++iptables -L ${OUTPUT} -v -n -x  | awk "/$IP"'[ \/]/ { print "out.value " $2; exit 0; }'
 --- munin-1.3.4/plugins/node.d.linux/vlan_inetuse_.in~	2008-03-08 02:42:39.000000000 +0100
 +++ munin-1.3.4/plugins/node.d.linux/vlan_inetuse_.in	2008-05-20 13:00:50.000000000 +0200
 @@ -37,8 +37,8 @@
