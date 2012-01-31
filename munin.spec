@@ -21,6 +21,7 @@ Source3:	%{name}-apache.conf
 Source4:	%{name}.logrotate
 Source5:	%{name}-node.logrotate
 Source6:	%{name}-lighttpd.conf
+Source7:	%{name}.tmpfiles
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-templatedir.patch
@@ -125,9 +126,10 @@ Munin.
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_sbindir}}
-install -d $RPM_BUILD_ROOT/var/log/archive/munin
-install -d $RPM_BUILD_ROOT%{_webapps}/%{_webapp}
+install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_sbindir}} \
+	$RPM_BUILD_ROOT/var/log/archive/munin \
+	$RPM_BUILD_ROOT%{_webapps}/%{_webapp} \
+	$RPM_BUILD_ROOT/usr/lib/tmpfiles.d
 
 %{__make} -j1 install \
 	JCVALID=no \
@@ -141,6 +143,8 @@ install %{SOURCE5} $RPM_BUILD_ROOT/etc/logrotate.d/munin-node
 install %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/apache.conf
 install %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/lighttpd.conf
+
+install %{SOURCE7} $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/%{name}.conf
 
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
@@ -252,6 +256,7 @@ fi
 %defattr(644,root,root,755)
 %doc README ChangeLog logo* Checklist
 %dir %{_datadir}/munin
+/usr/lib/tmpfiles.d/%{name}.conf
 %attr(770,munin,http) %dir /var/log/munin
 %attr(750,munin,root) %dir /var/log/archive/munin
 %attr(771,munin,munin) %dir /var/lib/munin
