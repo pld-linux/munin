@@ -10,7 +10,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.4.5
-Release:	5
+Release:	6
 License:	GPL
 Group:		Applications/WWW
 Source0:	http://dl.sourceforge.net/munin/%{name}-%{version}.tar.gz
@@ -46,7 +46,7 @@ Requires:	webserver(alias)
 Requires:	webserver(auth)
 Requires:	webserver(cgi)
 Requires:	webserver(expires)
-Conflicts:	logrotate < 3.7-4
+Conflicts:	logrotate < 3.8.0
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 

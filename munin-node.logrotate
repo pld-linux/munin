@@ -1,4 +1,5 @@
 /var/log/munin/munin-node.log {
+	su munin http
 	olddir /var/log/archive/munin
 	create 640 munin root
 	postrotate
