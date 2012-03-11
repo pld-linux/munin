@@ -2,7 +2,7 @@
 /var/log/munin/munin-html.log
 /var/log/munin/munin-limits.log
 /var/log/munin/munin-update.log {
-	su munin http
+	su root http
 	olddir /var/log/archive/munin
 	create 660 munin http
 }
