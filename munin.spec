@@ -10,7 +10,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	1.4.5
-Release:	10
+Release:	11
 License:	GPL
 Group:		Applications/WWW
 Source0:	http://dl.sourceforge.net/munin/%{name}-%{version}.tar.gz
@@ -22,6 +22,7 @@ Source4:	%{name}.logrotate
 Source5:	%{name}-node.logrotate
 Source6:	%{name}-lighttpd.conf
 Source7:	%{name}.tmpfiles
+Source8:	%{name}-httpd.conf
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-templatedir.patch
@@ -46,6 +47,7 @@ Requires:	webserver(alias)
 Requires:	webserver(auth)
 Requires:	webserver(cgi)
 Requires:	webserver(expires)
+Conflicts:	apache-base < 2.4.0-1
 Conflicts:	logrotate < 3.8.0
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -141,7 +143,7 @@ install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
 install %{SOURCE5} $RPM_BUILD_ROOT/etc/logrotate.d/munin-node
 
 install %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/apache.conf
-install %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
+install %{SOURCE8} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
 install %{SOURCE6} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/lighttpd.conf
 
 install %{SOURCE7} $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/%{name}.conf
@@ -158,10 +160,10 @@ rm -rf $RPM_BUILD_ROOT
 %triggerun -- apache1 < 1.3.37-3, apache1-base
 %webapp_unregister apache %{_webapp}
 
-%triggerin -- apache < 2.2.0, apache-base
+%triggerin -- apache-base
 %webapp_register httpd %{_webapp}
 
-%triggerun -- apache < 2.2.0, apache-base
+%triggerun -- apache-base
 %webapp_unregister httpd %{_webapp}
 
 %triggerin -- lighttpd
