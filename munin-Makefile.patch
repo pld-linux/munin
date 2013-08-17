@@ -24,7 +24,7 @@
 @@ -17,10 +17,10 @@
  #
  # the base of the Munin installation.
- # 
+ #
 -PREFIX     = $(DESTDIR)/opt/munin
 +PREFIX     = $(DESTDIR)/usr
  
@@ -34,7 +34,7 @@
  
  # Server only - where to put munin-cron
  BINDIR     = $(PREFIX)/bin
-@@ -32,34 +32,34 @@
+@@ -32,31 +32,31 @@
  DOCDIR     = $(PREFIX)/doc
  
  # Where to put man pages
@@ -51,24 +51,22 @@
 +HTMLDIR    = $(DESTDIR)/var/lib/munin/html
 +CGIDIR     = $(LIBDIR)/cgi
  
- # Server only - spool directory for data gathered from nodes by
- # munin-gather - experimental.  Place on ramdisk to make munin
- # scale better.  On many versions of Linux as well as on Solaris
- # /tmp will be a ramdisk.
- 
--SSPOOLDIR  = $(PREFIX)/spool
-+SSPOOLDIR  = $(PREFIX)/var/spool/munin
- 
- # Suggested directory name for a pulic ramdisk based tmp directory.
- # SSPOOLDIR := /tmp/muninspool
- 
- # Client only - Where to put RRD files and other intenal data
+ # Where to put internal data for master (RRD, internal files, ...)
 -DBDIR      = $(DESTDIR)/var/opt/munin
 +DBDIR      = $(DESTDIR)/var/lib/munin/db
  
+ # Where to put internal data for node (plugin state, ...)
+-DBDIRNODE  = $(DESTDIR)/var/opt/munin-node
++DBDIRNODE  = $(DESTDIR)/var/lib/munin/db-node
+ 
+ # Client only - Where the spool files are written. Must be writable by
+ # group "munin", and should be preserved between reboots
+-SPOOLDIR   = $(DBDIR)/spool
++SPOOLDIR  = $(DESTDIR)/var/spool/munin
+ 
  # Client only - Where plugins should put their states. Must be writable by
  # group "munin", and should be preserved between reboots
--PLUGSTATE  = $(DBDIR)/plugin-state
+-PLUGSTATE  = $(DBDIRNODE)/plugin-state
 +PLUGSTATE  = $(DESTDIR)/var/lib/munin/plugin-state
  
  # Where Munin should place its logs.

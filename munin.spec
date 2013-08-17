@@ -9,12 +9,12 @@
 Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
-Version:	1.4.5
-Release:	11
+Version:	2.0.17
+Release:	1
 License:	GPL
 Group:		Applications/WWW
-Source0:	http://dl.sourceforge.net/munin/%{name}-%{version}.tar.gz
-# Source0-md5:	4ae84b9a27b686c3819d8d7b51d8cb4c
+Source0:	http://downloads.sourceforge.net/munin/%{name}-%{version}.tar.gz
+# Source0-md5:	80c8e6090963ad888e43b90c77f0a866
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
@@ -23,6 +23,7 @@ Source5:	%{name}-node.logrotate
 Source6:	%{name}-lighttpd.conf
 Source7:	%{name}.tmpfiles
 Source8:	%{name}-httpd.conf
+Source9:	%{name}-node.service
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-templatedir.patch
@@ -33,12 +34,13 @@ BuildRequires:	perl-Net-SNMP
 BuildRequires:	perl-devel
 BuildRequires:	rpm-perlprov
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.268
+BuildRequires:	rpmbuild(macros) >= 1.671
 BuildRequires:	which
 Requires(triggerpostun):	sed >= 4.0
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	fonts-TTF-DejaVu
 Requires:	perl-Date-Manip
+Requires:	perl-FCGI
 Requires:	perl-HTML-Template
 Requires:	perl-Net-Server
 Requires:	rrdtool >= 1.3.0
@@ -104,6 +106,7 @@ Requires:	perl-Net-Server
 Requires:	perl-libwww
 Requires:	procps >= 2.0.7
 Requires:	rc-scripts >= 0.4.0.15
+Requires:	systemd-units >= 38
 Requires:	sysstat
 Conflicts:	logrotate < 3.7-4
 
@@ -131,10 +134,12 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_sbindir}} \
 	$RPM_BUILD_ROOT/var/log/archive/munin \
 	$RPM_BUILD_ROOT%{_webapps}/%{_webapp} \
-	$RPM_BUILD_ROOT/usr/lib/tmpfiles.d
+	$RPM_BUILD_ROOT/usr/lib/tmpfiles.d \
+	$RPM_BUILD_ROOT%{systemdunitdir}
 
 %{__make} -j1 install \
 	JCVALID=no \
+	CHOWN=/bin/true \
 	DESTDIR=$RPM_BUILD_ROOT
 
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
@@ -148,8 +153,14 @@ install %{SOURCE6} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/lighttpd.conf
 
 install %{SOURCE7} $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/%{name}.conf
 
+install %{SOURCE9} $RPM_BUILD_ROOT%{systemdunitdir}/munin-node.service
+
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
+
+for f in cgi-graph cgi-html graph html limits update ; do
+	touch $RPM_BUILD_ROOT/var/log/munin/munin-$f.log
+done
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -192,18 +203,33 @@ for i in *; do
 	esac
 done
 
+%post
+for f in cgi-graph cgi-html graph html limits update ; do
+	touch /var/log/munin/munin-$f.log
+	chmod 660 /var/log/munin/munin-$f.log
+	chown munin:http /var/log/munin/munin-$f.log
+done
+
 %post node
 if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
 	%{_sbindir}/munin-node-configure --shell | sh
 fi
 %service munin-node restart "Munin Node agent"
+%systemd_post munin-node.service
 
 %preun node
 if [ "$1" = "0" ] ; then
 	%service munin-node stop
 	/sbin/chkconfig --del munin-node
 fi
+%systemd_preun munin-node.service
+
+%postun node
+%systemd_reload
+
+%triggerpostun node -- munin-node < 2.0.17-1
+%systemd_trigger munin-node.service
 
 %pre common
 %groupadd -g 158 munin
@@ -218,14 +244,17 @@ fi
 %files
 %defattr(644,root,root,755)
 %dir %attr(750,munin,http) %{_webapps}/%{_webapp}
-%dir %attr(750,munin,http) %{_webapps}/%{_webapp}/templates
-%dir %attr(750,munin,http) %{_webapps}/%{_webapp}/templates/partial
-%{_webapps}/%{_webapp}/templates/*.css
-%{_webapps}/%{_webapp}/templates/*.html
-%{_webapps}/%{_webapp}/templates/*.ico
-%{_webapps}/%{_webapp}/templates/*.png
+%dir %attr(750,munin,http) %{_webapps}/%{_webapp}/munin-conf.d
+%dir %{_webapps}/%{_webapp}/templates
 %{_webapps}/%{_webapp}/templates/*.tmpl
-%{_webapps}/%{_webapp}/templates/partial/*
+%dir %{_webapps}/%{_webapp}/templates/static
+%{_webapps}/%{_webapp}/templates/static/*.css
+%{_webapps}/%{_webapp}/templates/static/*.html
+%{_webapps}/%{_webapp}/templates/static/*.ico
+%{_webapps}/%{_webapp}/templates/static/*.js
+%{_webapps}/%{_webapp}/templates/static/*.png
+%dir %{_webapps}/%{_webapp}/templates/partial
+%{_webapps}/%{_webapp}/templates/partial/*.tmpl
 %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/munin.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/apache.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/httpd.conf
@@ -238,9 +267,11 @@ fi
 %attr(755,root,root) %{_datadir}/munin/munin-html
 %attr(755,root,root) %{_datadir}/munin/munin-limits
 %attr(755,root,root) %{_datadir}/munin/munin-update
+%attr(755,root,root) %{_datadir}/munin/munin-datafile2storable
+%attr(755,root,root) %{_datadir}/munin/munin-storable2datafile
 %attr(755,munin,root) %dir %{_datadir}/munin/cgi
 %attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-graph
-%attr(755,munin,root) %{_datadir}/munin/cgi/munin-fastcgi-graph
+%attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-html
 %attr(755,munin,root) %dir %{_htmldir}
 %{perl_vendorlib}/Munin/Master
 %{_mandir}/man3/Munin::Master*
@@ -252,7 +283,14 @@ fi
 %{_mandir}/man8/munin-limits*
 %{_mandir}/man8/munin-update*
 %{_mandir}/man8/munin.*
-%attr(770,munin,munin) %dir /var/lib/munin/db
+%attr(771,munin,munin) %dir /var/lib/munin/db
+%attr(770,munin,http) %dir /var/lib/munin/db/cgi-tmp
+%attr(660,munin,http) %ghost /var/log/munin/munin-cgi-graph.log
+%attr(660,munin,http) %ghost /var/log/munin/munin-cgi-html.log
+%attr(660,munin,http) %ghost /var/log/munin/munin-graph.log
+%attr(660,munin,http) %ghost /var/log/munin/munin-html.log
+%attr(660,munin,http) %ghost /var/log/munin/munin-limits.log
+%attr(660,munin,http) %ghost /var/log/munin/munin-update.log
 
 %files common
 %defattr(644,root,root,755)
@@ -277,13 +315,17 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin-node
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
+%{systemdunitdir}/munin-node.service
 %attr(755,root,root) %{_bindir}/munindoc
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
 %attr(755,root,root) %{_sbindir}/munin-run
+%attr(755,root,root) %{_sbindir}/munin-sched
 %{perl_vendorlib}/Munin/Node
 %{perl_vendorlib}/Munin/Plugin
 %{perl_vendorlib}/Munin/Plugin.pm
+%attr(755,root,root) %{_datadir}/munin/munin-async
+%attr(755,root,root) %{_datadir}/munin/munin-asyncd
 %dir %{_datadir}/munin/plugins
 %attr(755,root,root) %{_datadir}/munin/plugins/*
 %if !%{with sybase}
@@ -292,6 +334,7 @@ fi
 %dir %attr(770,munin,munin) /var/lib/munin/plugin-state
 %{_mandir}/man1/munin-node*
 %{_mandir}/man1/munin-run*
+%{_mandir}/man1/munin-sched*
 %{_mandir}/man1/munindoc*
 %{_mandir}/man3/Munin::Node*
 %{_mandir}/man3/Munin::Plugin*

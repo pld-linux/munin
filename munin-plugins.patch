@@ -1,6 +1,6 @@
-diff -Naur munin-1.3.4/dists/tarball/plugins.conf munin-1.3.4-p/dists/tarball/plugins.conf
---- munin-1.3.4/dists/tarball/plugins.conf	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/dists/tarball/plugins.conf	Fri Apr  4 11:13:06 2008
+diff -urN munin-2.0.17/dists/tarball/plugins.conf munin-2.0.17-plugins/dists/tarball/plugins.conf
+--- munin-2.0.17/dists/tarball/plugins.conf	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/dists/tarball/plugins.conf	2013-08-17 13:18:51.817585940 +0200
 @@ -14,6 +14,9 @@
  #
  #
@@ -11,7 +11,7 @@ diff -Naur munin-1.3.4/dists/tarball/plugins.conf munin-1.3.4-p/dists/tarball/pl
  [mysql*]
  #env.mysqlopts -u someuser
  
-@@ -31,3 +31,128 @@
+@@ -31,3 +34,128 @@
  
  [postfix*]
  user root
@@ -140,10 +140,47 @@ diff -Naur munin-1.3.4/dists/tarball/plugins.conf munin-1.3.4-p/dists/tarball/pl
 +
 +[cupsys_pages]
 +user root
-diff -Naur munin-1.3.4/plugins/node.d/apache_accesses.in munin-1.3.4-p/plugins/node.d/apache_accesses.in
---- munin-1.3.4/plugins/node.d/apache_accesses.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/apache_accesses.in	Fri Apr  4 11:13:06 2008
-@@ -86,6 +86,7 @@
+diff -urN munin-2.0.17/plugins/node.d/amavis.in munin-2.0.17-plugins/plugins/node.d/amavis.in
+--- munin-2.0.17/plugins/node.d/amavis.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/amavis.in	2013-08-17 13:18:51.820919315 +0200
+@@ -77,13 +77,12 @@
+ =cut
+ 
+ mktempfile () {
+-    cmd=`echo $MUNIN_MKTEMP | sed s/\\$1/$1/`
+-    $cmd
++    mktemp -p /tmp/ $1
+ }
+ 
+ AMAVIS_LOG=${amavislog:-/var/log/mail/mail.info}
+ LOGTAIL=${logtail:-logtail}
+-STATEFILE=$MUNIN_PLUGSTATE/amavis.offset
++STATEFILE=@@PLUGSTATE@@/amavis.offset
+ 
+ if [ "$1" = "autoconf" ]; then
+         if [ -f "${AMAVIS_LOG}" -a -n "${LOGTAIL}" -a -x "${LOGTAIL}" ] ; then
+@@ -106,7 +105,7 @@
+ 
+ if [ "$1" = "config" ]; then
+ 	echo 'graph_title Amavis filter statistics'
+-	echo 'graph_vlabel \#'
++	echo 'graph_vlabel mails'
+ 	echo 'graph_category antivirus'
+ 	echo 'virus.label virus'
+ 	echo 'virus.info Number of viruses caught in email'
+@@ -124,7 +123,7 @@
+ spamm=U
+ spams=U
+ 
+-TEMP_FILE=$(mktempfile munin-amavis.XXXXXX)
++TEMP_FILE=$(mktempfile munin-amavis.XXXXXXXXXX)
+ 
+ if [ -n "$TEMP_FILE" -a -f "$TEMP_FILE" ]
+ then
+diff -urN munin-2.0.17/plugins/node.d/apache_accesses.in munin-2.0.17-plugins/plugins/node.d/apache_accesses.in
+--- munin-2.0.17/plugins/node.d/apache_accesses.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/apache_accesses.in	2013-08-17 13:18:51.817585940 +0200
+@@ -89,6 +89,7 @@
  
  my $URL = exists $ENV{'url'} ? $ENV{'url'} : "http://127.0.0.1:%d/server-status?auto";
  my @PORTS = exists $ENV{'ports'} ? split(' ', $ENV{'ports'}) : (80);
@@ -151,7 +188,7 @@ diff -Naur munin-1.3.4/plugins/node.d/apache_accesses.in munin-1.3.4-p/plugins/n
  
  if ( defined $ARGV[0] and $ARGV[0] eq "autoconf" )
  {
-@@ -114,7 +115,11 @@
+@@ -129,7 +130,11 @@
  
  if ( defined $ARGV[0] and $ARGV[0] eq "config" )
  {
@@ -164,18 +201,18 @@ diff -Naur munin-1.3.4/plugins/node.d/apache_accesses.in munin-1.3.4-p/plugins/n
  	print "graph_args --base 1000\n";
  	print "graph_vlabel accesses / \${graph_period}\n";
  	print "graph_category apache\n";
-diff -Naur munin-1.3.4/plugins/node.d/apache_processes.in munin-1.3.4-p/plugins/node.d/apache_processes.in
---- munin-1.3.4/plugins/node.d/apache_processes.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/apache_processes.in	Fri Apr  4 11:13:06 2008
-@@ -88,6 +88,7 @@
+diff -urN munin-2.0.17/plugins/node.d/apache_processes.in munin-2.0.17-plugins/plugins/node.d/apache_processes.in
+--- munin-2.0.17/plugins/node.d/apache_processes.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/apache_processes.in	2013-08-17 13:18:51.817585940 +0200
+@@ -96,6 +96,7 @@
  
  my $URL = exists $ENV{'url'} ? $ENV{'url'} : "http://127.0.0.1:%d/server-status?auto";
  my @PORTS = exists $ENV{'ports'} ? split(' ', $ENV{'ports'}) : (80);
 +my $HOST = exists $ENV{'host'} ? $ENV{'host'} : undef;
+ my $SHOWFREE = !exists $ENV{'showfree'} || $ENV{'showfree'};
  
  if ( defined $ARGV[0] and $ARGV[0] eq "autoconf" )
- {
-@@ -119,7 +120,11 @@
+@@ -136,7 +137,11 @@
  
  if ( defined $ARGV[0] and $ARGV[0] eq "config" )
  {
@@ -188,10 +225,10 @@ diff -Naur munin-1.3.4/plugins/node.d/apache_processes.in munin-1.3.4-p/plugins/
          print "graph_args --base 1000 -l 0\n";
  		print "graph_category apache\n";
  	print "graph_order ";
-diff -Naur munin-1.3.4/plugins/node.d/apache_volume.in munin-1.3.4-p/plugins/node.d/apache_volume.in
---- munin-1.3.4/plugins/node.d/apache_volume.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/apache_volume.in	Fri Apr  4 11:13:06 2008
-@@ -86,6 +86,7 @@
+diff -urN munin-2.0.17/plugins/node.d/apache_volume.in munin-2.0.17-plugins/plugins/node.d/apache_volume.in
+--- munin-2.0.17/plugins/node.d/apache_volume.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/apache_volume.in	2013-08-17 13:18:51.817585940 +0200
+@@ -89,6 +89,7 @@
  
  my $URL = exists $ENV{'url'} ? $ENV{'url'} : "http://127.0.0.1:%d/server-status?auto";
  my @PORTS = exists $ENV{'ports'} ? split(' ', $ENV{'ports'}) : (80);
@@ -199,7 +236,7 @@ diff -Naur munin-1.3.4/plugins/node.d/apache_volume.in munin-1.3.4-p/plugins/nod
  
  if ( defined $ARGV[0] and $ARGV[0] eq "autoconf" )
  {
-@@ -114,7 +115,11 @@
+@@ -129,7 +130,11 @@
  
  if ( defined $ARGV[0] and $ARGV[0] eq "config" )
  {
@@ -212,34 +249,43 @@ diff -Naur munin-1.3.4/plugins/node.d/apache_volume.in munin-1.3.4-p/plugins/nod
  	print "graph_args --base 1000\n";
  	print "graph_vlabel bytes per \${graph_period}\n";
  	print "graph_category apache\n";
-diff -Naur munin-1.3.4/plugins/node.d/bind9.in munin-1.3.4-p/plugins/node.d/bind9.in
---- munin-1.3.4/plugins/node.d/bind9.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/bind9.in	Fri Apr  4 11:13:06 2008
-@@ -19,7 +19,7 @@
- my %IN;
+diff -urN munin-2.0.17/plugins/node.d/bind9.in munin-2.0.17-plugins/plugins/node.d/bind9.in
+--- munin-2.0.17/plugins/node.d/bind9.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/bind9.in	2013-08-17 13:18:51.820919315 +0200
+@@ -53,7 +53,7 @@
+ use strict;
  
- sub get_state {
--    open(Q,"< $STATEFILE") or die;
-+    open(Q,"< $STATEFILE") or return;
+ my $QUERYLOG = $ENV{logfile} || '/var/log/bind9/query.log';
+-my $STATEFILE= "$ENV{MUNIN_PLUGSTATE}/bind9.state";
++my $STATEFILE= "@@PLUGSTATE@@/bind9.state";
+ 
+ my $OTHER=0;
+ my %IN;
+@@ -63,7 +63,7 @@
+         open(Q, ">", $STATEFILE);
+         close(Q);
+     }
+-    open(Q,"< $STATEFILE") or die ("Cannot open state file");
++    open(Q,"< $STATEFILE") or return ("Cannot open state file");
      while (<Q>) {
          chomp;
          my ($q,$n) = split(/\s+/,$_,2);
-diff -Naur munin-1.3.4/plugins/node.d/courier_.in munin-1.3.4-p/plugins/node.d/courier_.in
---- munin-1.3.4/plugins/node.d/courier_.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/courier_.in	Fri Apr  4 11:13:06 2008
-@@ -35,7 +35,7 @@
+diff -urN munin-2.0.17/plugins/node.d/courier_.in munin-2.0.17-plugins/plugins/node.d/courier_.in
+--- munin-2.0.17/plugins/node.d/courier_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/courier_.in	2013-08-17 13:18:51.817585940 +0200
+@@ -55,7 +55,7 @@
  COURIER_LOG=${logfile:-/var/log/mail.log}
  SERVICE=${service:-`basename $0 | sed 's/^courier_//g'`}
- OFFSET_FILE=@@PLUGSTATE@@/courier_${SERVICE}.offset
+ OFFSET_FILE=${MUNIN_PLUGSTATE}/courier_${SERVICE}.offset
 -LOGTAIL=${logtail:-/usr/sbin/logtail}
 +LOGTAIL=${logtail:-`which logtail`}
  
  mktempfile () {
  @@MKTEMP@@
-diff -Naur munin-1.3.4/plugins/node.d/courier_mta_mailstats.in munin-1.3.4-p/plugins/node.d/courier_mta_mailstats.in
---- munin-1.3.4/plugins/node.d/courier_mta_mailstats.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/courier_mta_mailstats.in	Fri Apr  4 11:13:06 2008
-@@ -101,7 +101,9 @@
+diff -urN munin-2.0.17/plugins/node.d/courier_mta_mailstats.in munin-2.0.17-plugins/plugins/node.d/courier_mta_mailstats.in
+--- munin-2.0.17/plugins/node.d/courier_mta_mailstats.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/courier_mta_mailstats.in	2013-08-17 13:18:51.817585940 +0200
+@@ -108,7 +108,9 @@
  
  if($startsize < $pos) {
      # Log rotated
@@ -250,10 +296,10 @@ diff -Naur munin-1.3.4/plugins/node.d/courier_mta_mailstats.in munin-1.3.4-p/plu
      $pos = 0;
  }
  
-diff -Naur munin-1.3.4/plugins/node.d/courier_mta_mailvolume.in munin-1.3.4-p/plugins/node.d/courier_mta_mailvolume.in
---- munin-1.3.4/plugins/node.d/courier_mta_mailvolume.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/courier_mta_mailvolume.in	Fri Apr  4 11:13:06 2008
-@@ -92,7 +92,9 @@
+diff -urN munin-2.0.17/plugins/node.d/courier_mta_mailvolume.in munin-2.0.17-plugins/plugins/node.d/courier_mta_mailvolume.in
+--- munin-2.0.17/plugins/node.d/courier_mta_mailvolume.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/courier_mta_mailvolume.in	2013-08-17 13:18:51.817585940 +0200
+@@ -98,7 +98,9 @@
  
  if($startsize < $pos) {
      # Log rotated
@@ -264,10 +310,10 @@ diff -Naur munin-1.3.4/plugins/node.d/courier_mta_mailvolume.in munin-1.3.4-p/pl
      $pos = 0;
  }
  
-diff -Naur munin-1.3.4/plugins/node.d/cupsys_pages.in munin-1.3.4-p/plugins/node.d/cupsys_pages.in
---- munin-1.3.4/plugins/node.d/cupsys_pages.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/cupsys_pages.in	Fri Apr  4 11:13:06 2008
-@@ -94,7 +94,9 @@
+diff -urN munin-2.0.17/plugins/node.d/cupsys_pages.in munin-2.0.17-plugins/plugins/node.d/cupsys_pages.in
+--- munin-2.0.17/plugins/node.d/cupsys_pages.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/cupsys_pages.in	2013-08-17 13:18:51.817585940 +0200
+@@ -100,7 +100,9 @@
  }
  if ($startsize < $pos) {
      # Log rotated
@@ -278,45 +324,48 @@ diff -Naur munin-1.3.4/plugins/node.d/cupsys_pages.in munin-1.3.4-p/plugins/node
      $pos = 0;
  }
  
-@@ -148,7 +148,7 @@
+@@ -146,7 +148,7 @@
      while (tell(LOGFILE) < $stop) {
  	my $line = <LOGFILE>;
  	chomp ($line);
--	if ($line =~ /^(\S+)\s+\S+\s+\d+\s+\[[^\]]+\]\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)$/) {
+-	if ($line =~ /^(\S+)\s+\S+\s+\d+\s+\[[^\]]+\]\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)/) {
 +	if ($line =~ /^(\S+)\s+\S+\s+\S+\s+\[[^\]]+\]\s+(\d+)\s+(\d+)\s+(.+)$/) {
  	    if(!defined($printers{$1}) && keys(%printers) < $MAXLABEL) {
  		$printers{$1} += int($2)*int($3);
  	    } elsif(defined($printers{$1})) {
-diff -Naur munin-1.3.4/plugins/node.d/mailman.in munin-1.3.4-p/plugins/node.d/mailman.in
---- munin-1.3.4/plugins/node.d/mailman.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/mailman.in	Fri Apr  4 11:13:06 2008
-@@ -26,7 +26,7 @@
+diff -urN munin-2.0.17/plugins/node.d/foldingathome_rank.in munin-2.0.17-plugins/plugins/node.d/foldingathome_rank.in
+--- munin-2.0.17/plugins/node.d/foldingathome_rank.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/foldingathome_rank.in	2013-08-17 13:18:51.820919315 +0200
+@@ -13,7 +13,7 @@
+ #%# family=contrib
+ #%# capabilities=autoconf
  
- use Munin::Common::Defaults;
+-statefile=$MUNIN_PLUGSTATE/plugin-fah_rank.state
++statefile=@@PLUGSTATE@@/plugin-fah_rank.state
  
--$statefile = "$Munin::Common::Defaults::MUNIN_PLUGSTATE/munin-mailman-log.state";
-+$statefile = "$Munin::Common::Defaults::$ENV{MUNIN_PLUGSTATE}/munin-mailman-log.state";
- $pos = undef;
- $posts = 0;
- $members = 0;
-
-@@ -32,7 +32,12 @@
- # System paths (as known to mailman-limacute
- $logfile = "/var/log/mailman/post";
- $libdir  = "/var/lib/mailman";
--$lister  = "/usr/lib/mailman/bin/list_members";
-+
-+if (-f "/usr/lib64/mailman/bin/list_members") {
-+    $lister  = "/usr/lib64/mailman/bin/list_members";
-+} else {
-+    $lister  = "/usr/lib/mailman/bin/list_members";
+ if [ "$1" = "autoconf" ]; then
+     # No real check of anything
+diff -urN munin-2.0.17/plugins/node.d/mailman.in munin-2.0.17-plugins/plugins/node.d/mailman.in
+--- munin-2.0.17/plugins/node.d/mailman.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/mailman.in	2013-08-17 13:18:51.817585940 +0200
+@@ -38,7 +38,13 @@
+ # System paths
+ $logfile = $ENV{'logfile'} || "/var/log/mailman/post";
+ $libdir  = $ENV{'libdir'}  || "/var/lib/mailman";
+-$lister  = $ENV{'lister'}  || "/usr/lib/mailman/bin/list_members";
++$lister  = $ENV{'lister'}  || {
++	if (-f "/usr/lib64/mailman/bin/list_members") {
++		$lister  = "/usr/lib64/mailman/bin/list_members";
++	} else {
++		$lister  = "/usr/lib/mailman/bin/list_members";
++	}
 +}
  
  if (-f "$logfile.0")
  {
-@@ -69,7 +69,9 @@
- 
- if($startsize < $pos) {
+@@ -94,7 +100,9 @@
+     $startsize = 0;
+ } elsif($startsize < $pos) {
      # Log rotated
 -    parseMailmanLog($rotlogfile, $pos, (stat $rotlogfile)[7]);
 +    if (-f $rotlogfile) {
@@ -325,131 +374,278 @@ diff -Naur munin-1.3.4/plugins/node.d/mailman.in munin-1.3.4-p/plugins/node.d/ma
      $pos = 0;
  }
  
-diff -Naur munin-1.3.4/plugins/node.d/mysql_slowqueries.in munin-1.3.4-p/plugins/node.d/mysql_slowqueries.in
---- munin-1.3.4/plugins/node.d/mysql_slowqueries.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/mysql_slowqueries.in	Fri Apr  4 11:13:06 2008
-@@ -47,5 +47,5 @@
+diff -urN munin-2.0.17/plugins/node.d/mysql_.in munin-2.0.17-plugins/plugins/node.d/mysql_.in
+--- munin-2.0.17/plugins/node.d/mysql_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/mysql_.in	2013-08-17 13:18:51.820919315 +0200
+@@ -39,6 +39,7 @@
+     env.mysqlconnection DBI:mysql:mysql;host=127.0.0.1;port=3306
+     env.mysqluser root
+     env.mysqlpassword geheim
++    env.mysqlnosuperpriv 1
+     env.cachenamespace munin_mysql_pri
+   [mysql2_*]
+     env.mysqlconnection DBI:mysql:mysql;host=127.0.0.1;port=13306
+@@ -156,6 +157,7 @@
+     'user'       => $ENV{'mysqluser'}       || 'root',
+     'password'   => $ENV{'mysqlpassword'}   || '',
+     'cache_namespace' => $ENV{'cachenamespace'} || 'munin_mysql',
++    'nosuper'    => $ENV{'mysqlnosuperpriv'} || 0,
+ );
+ 
+ 
+@@ -927,8 +929,10 @@
+ 
+     update_variables($dbh);
+     update_innodb($dbh);
+-    update_master($dbh);
+-    update_slave($dbh);
++    if (!$config{nosuper}) {
++	update_master($dbh);
++	update_slave($dbh);
++    }
+ 
+     $shared_memory_cache->set('data', $data);
+ }
+diff -urN munin-2.0.17/plugins/node.d/mysql_innodb.in munin-2.0.17-plugins/plugins/node.d/mysql_innodb.in
+--- munin-2.0.17/plugins/node.d/mysql_innodb.in	2013-08-17 13:19:03.501062149 +0200
++++ munin-2.0.17-plugins/plugins/node.d/mysql_innodb.in	2013-08-17 13:18:51.994254767 +0200
+@@ -1,4 +1,4 @@
+-#!@@GOODSH@@
++#!@@BASH@@
+ 
+ : << =cut
+ 
+diff -urN munin-2.0.17/plugins/node.d/mysql_slowqueries.in munin-2.0.17-plugins/plugins/node.d/mysql_slowqueries.in
+--- munin-2.0.17/plugins/node.d/mysql_slowqueries.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/mysql_slowqueries.in	2013-08-17 13:18:51.817585940 +0200
+@@ -64,5 +64,5 @@
  	exit 0
  fi
  
 -/usr/bin/printf "queries.value "
 +/bin/printf "queries.value "
  ($MYSQLADMIN $MYSQLOPTS status 2>/dev/null || echo a a a a a a a a U) | awk '{print $9}'
-diff -Naur munin-1.3.4/plugins/node.d/mysql_threads.in munin-1.3.4-p/plugins/node.d/mysql_threads.in
---- munin-1.3.4/plugins/node.d/mysql_threads.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/mysql_threads.in	Fri Apr  4 11:13:06 2008
-@@ -45,5 +45,5 @@
+diff -urN munin-2.0.17/plugins/node.d/mysql_threads.in munin-2.0.17-plugins/plugins/node.d/mysql_threads.in
+--- munin-2.0.17/plugins/node.d/mysql_threads.in	2013-08-17 13:19:03.501062149 +0200
++++ munin-2.0.17-plugins/plugins/node.d/mysql_threads.in	2013-08-17 13:18:51.994254767 +0200
+@@ -74,5 +74,5 @@
  	exit 0
  fi
  
 -/usr/bin/printf "threads.value "
 +/bin/printf "threads.value "
  ($MYSQLADMIN $MYSQLOPTS status 2>/dev/null || echo 'a a a U') | awk '{print $4}'
-diff -Naur munin-1.3.4/plugins/node.d/ntp_.in munin-1.3.4-p/plugins/node.d/ntp_.in
---- munin-1.3.4/plugins/node.d/ntp_.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/ntp_.in	Fri Apr  4 11:13:06 2008
-@@ -32,9 +32,9 @@
- my $nodelay = $ENV{'nodelay'} || 0;
+diff -urN munin-2.0.17/plugins/node.d/ntp_.in munin-2.0.17-plugins/plugins/node.d/ntp_.in
+--- munin-2.0.17/plugins/node.d/ntp_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/ntp_.in	2013-08-17 13:18:51.817585940 +0200
+@@ -57,26 +57,26 @@
+ use Net::IP;
  
  if ($ARGV[0] and $ARGV[0] eq "autoconf") {
--	`ntpq -c help >/dev/null 2>/dev/null`;
-+	`/usr/sbin/ntpq -c help >/dev/null 2>/dev/null`;
- 	if ($? eq "0") {
--		if (`ntpq -c "hostnames no" -c peers | wc -l` > 0) {
-+		if (`/usr/sbin/ntpq -c "hostnames no" -c peers | wc -l` > 0) {
- 			print "yes\n";
- 			exit 0;
- 		} else {
-@@ -42,13 +42,13 @@
- 			exit 0;
- 		}
- 	} else {
--		print "no (ntpq not found)\n";
-+		print "no (/usr/sbin/ntpq not found)\n";
- 		exit 0;
- 	}
+-        `ntpq -c help >/dev/null 2>/dev/null`;
++        `/usr/sbin/ntpq -c help >/dev/null 2>/dev/null`;
+         if ($CHILD_ERROR eq "0") {
+-                if (`ntpq -n -c peers | wc -l` > 0) {
++                if (`/usr/sbin/ntpq -n -c peers | wc -l` > 0) {
+                         print "yes\n";
+                         exit 0;
+                 } else {
+-                        print "no (ntpq -p returned no peers)\n";
++                        print "no (/usr/sbin/ntpq -p returned no peers)\n";
+                         exit 0;
+                 }
+         } else {
+-                print "no (ntpq not found)\n";
++                print "no (/usr/sbin/ntpq not found)\n";
+                 exit 0;
+         }
  }
  
  if ($ARGV[0] and $ARGV[0] eq "suggest") {
--	my @lines = `ntpq -c "hostnames no" -c peers`;
-+	my @lines = `/usr/sbin/ntpq -c "hostnames no" -c peers`;
- 	foreach (@lines) {
- 		next unless /^.(\d+\.\d+\.\d+\.\d+)/;
- 		next if /^.224\.0\.1\.1/;
-@@ -73,7 +73,7 @@
- exit 2 unless defined $name;
- 
- if ($ARGV[0] and $ARGV[0] eq "config") {
--	my @lines = `ntpq -c "hostnames no" -c peers`;
-+	my @lines = `/usr/sbin/ntpq -c "hostnames no" -c peers`;
- 	my $host;
- 	foreach (@lines) {
- 		next unless /^.(\d+\.\d+\.\d+\.\d+)/;
+-        foreach my $line (`ntpq -c associations`) {
++        foreach my $line (`/usr/sbin/ntpq -c associations`) {
+                 if ($line =~ m/^\s*\d+/) {
+                         my (undef, undef, $assid, undef, undef, undef, undef, undef, undef, undef) = split(/\s+/, $line);
+-                        chomp(my $peerinfo = `ntpq -n -c "readvar $assid srcadr"`);
++                        chomp(my $peerinfo = `/usr/sbin/ntpq -n -c "readvar $assid srcadr"`);
+                         $peerinfo =~ s/\R/ /g;
+                         my ($peer_addr) = ($peerinfo =~ m/srcadr=(.*)/);
+                         print $peer_addr, "\n" unless $peer_addr eq "0.0.0.0";
 @@ -108,7 +108,7 @@
-         exit 0;
+ my $delay;
+ my $offset;
+ my $jitter;
+-my @associations = `ntpq -c associations`;
++my @associations = `/usr/sbin/ntpq -c associations`;
+ 
+ foreach my $line (@associations) {
+         if ($line =~ m/^\s*\d+/) {
+diff -urN munin-2.0.17/plugins/node.d/ntp_kernel_err.in munin-2.0.17-plugins/plugins/node.d/ntp_kernel_err.in
+--- munin-2.0.17/plugins/node.d/ntp_kernel_err.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/ntp_kernel_err.in	2013-08-17 13:18:51.820919315 +0200
+@@ -32,7 +32,7 @@
+ export PATH=/usr/local/sbin:$PATH
+ 
+ if [ "$1" = "autoconf" ]; then
+-    { ntpq -c kerninfo; ntpdc -c kerninfo; } 2>/dev/null |
++    { /usr/sbin/ntpq -c kerninfo; ntpdc -c kerninfo; } 2>/dev/null |
+     awk 'BEGIN { ev=1; }
+          /^estimated error:/ { ev=0; }
+          END { if (ev == 0) { print "yes";} else { print "no"; } exit ev; }'
+@@ -51,11 +51,11 @@
+ 
+ printf 'ntp_err.value '
+ 
+-if [ $(ntpq -c version | grep --extended-regexp --only-matching '[[:digit:]]\.[[:digit:]]\.[[:digit:]]' | tr -d '.') -ge 427 ]
++if [ $(/usr/sbin/ntpq -c version | grep --extended-regexp --only-matching '[[:digit:]]\.[[:digit:]]\.[[:digit:]]' | tr -d '.') -ge 427 ]
+ then
+-    cmd=ntpq
++    cmd=/usr/sbin/ntpq
+ else
+-    cmd=ntpdc
++    cmd=/usr/sbin/ntpdc
+ fi
+ 
+ $cmd -c kerninfo | awk '/^estimated error:/ { print $3 }'
+diff -urN munin-2.0.17/plugins/node.d/ntp_kernel_pll_freq.in munin-2.0.17-plugins/plugins/node.d/ntp_kernel_pll_freq.in
+--- munin-2.0.17/plugins/node.d/ntp_kernel_pll_freq.in	2013-08-17 13:19:03.501062149 +0200
++++ munin-2.0.17-plugins/plugins/node.d/ntp_kernel_pll_freq.in	2013-08-17 13:18:51.994254767 +0200
+@@ -39,7 +39,7 @@
+ export PATH=/usr/local/sbin:$PATH
+ 
+ if [ "$1" = "autoconf" ]; then
+-    { ntpq -c kerninfo; ntpdc -c kerninfo; } 2>/dev/null |
++    { /usr/sbin/ntpq -c kerninfo; ntpdc -c kerninfo; } 2>/dev/null |
+     awk 'BEGIN { ev=1; }
+          /^pll frequency:/ { ev=0; }
+          END { if (ev == 0) { print "yes";} else { print "no"; } exit ev; }'
+@@ -65,11 +65,11 @@
+ 
+ printf 'ntp_pll_freq.value '
+ 
+-if [ $(ntpq -c version | grep --extended-regexp --only-matching '[[:digit:]]\.[[:digit:]]\.[[:digit:]]' | tr -d '.') -ge 427 ]
++if [ $(/usr/sbin/ntpq -c version | grep --extended-regexp --only-matching '[[:digit:]]\.[[:digit:]]\.[[:digit:]]' | tr -d '.') -ge 427 ]
+ then
+-    cmd=ntpq
++    cmd=/usr/sbin/ntpq
+ else
+-    cmd=ntpdc
++    cmd=/usr/sbin/ntpdc
+ fi
+ 
+ $cmd -c kerninfo | awk -v fcomp=$fcomp '/^pll frequency:/ { print $3 + fcomp }'
+diff -urN munin-2.0.17/plugins/node.d/ntp_kernel_pll_off.in munin-2.0.17-plugins/plugins/node.d/ntp_kernel_pll_off.in
+--- munin-2.0.17/plugins/node.d/ntp_kernel_pll_off.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/ntp_kernel_pll_off.in	2013-08-17 13:18:51.820919315 +0200
+@@ -32,7 +32,7 @@
+ export PATH=/usr/local/sbin:$PATH
+ 
+ if [ "$1" = "autoconf" ]; then
+-    { ntpq -c kerninfo; ntpdc -c kerninfo; } 2>/dev/null |
++    { /usr/sbin/ntpq -c kerninfo; ntpdc -c kerninfo; } 2>/dev/null |
+     awk 'BEGIN { ev=1; }
+          /^pll offset:/ { ev=0; }
+          END { if (ev == 0) { print "yes";} else { print "no"; } exit ev; }'
+@@ -51,11 +51,11 @@
+ 
+ printf 'ntp_pll_off.value '
+ 
+-if [ $(ntpq -c version | grep --extended-regexp --only-matching '[[:digit:]]\.[[:digit:]]\.[[:digit:]]' | tr -d '.') -ge 427 ]
++if [ $(/usr/sbin/ntpq -c version | grep --extended-regexp --only-matching '[[:digit:]]\.[[:digit:]]\.[[:digit:]]' | tr -d '.') -ge 427 ]
+ then
+-    cmd=ntpq
++    cmd=/usr/sbin/ntpq
+ else
+-    cmd=ntpdc
++    cmd=/usr/sbin/ntpdc
+ fi
+ 
+ $cmd -c kerninfo | awk '/^pll offset:/ { print $3 }'
+diff -urN munin-2.0.17/plugins/node.d/ntp_offset.in munin-2.0.17-plugins/plugins/node.d/ntp_offset.in
+--- munin-2.0.17/plugins/node.d/ntp_offset.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/ntp_offset.in	2013-08-17 13:18:51.820919315 +0200
+@@ -38,9 +38,9 @@
+ =cut
+ 
+ do_autoconf () {
+-    ntpq -c help >/dev/null 2>&1 || { echo 'no (no ntpq program)'; exit 0; }
++    /usr/sbin/ntpq -c help >/dev/null 2>&1 || { echo 'no (no ntpq program)'; exit 0; }
+ 
+-    case "$(ntpq -n -p 2>/dev/null | wc -l)" in
++    case "$(/usr/sbin/ntpq -n -p 2>/dev/null | wc -l)" in
+ 	0)
+             echo 'no (unable to list peers)'
+ 	    exit 0
+@@ -57,7 +57,7 @@
  }
  
--my @lines = `ntpq -c "hostnames no" -c peers`;
-+my @lines = `/usr/sbin/ntpq -c "hostnames no" -c peers`;
- foreach (@lines) {
- 	next unless /^.(\d+\.\d+\.\d+\.\d+)/;
- 	next if /^.224\.0\.1\.1/;
-diff -Naur munin-1.3.4/plugins/node.d/ntp_states.in munin-1.3.4-p/plugins/node.d/ntp_states.in
---- munin-1.3.4/plugins/node.d/ntp_states.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/ntp_states.in	Fri Apr  4 11:13:06 2008
-@@ -35,9 +35,9 @@
-                );
+ do_config () {
+-    syspeer="$(ntpq -n -p | grep '^[*o]')"
++    syspeer="$(/usr/sbin/ntpq -n -p | grep '^[*o]')"
+ 
+     set - $syspeer
+ 
+@@ -86,7 +86,7 @@
+ 
+ do_ () {
+     # Fetch operation
+-    syspeer="$(ntpq -n -p | grep '^[*o]')"
++    syspeer="$(/usr/sbin/ntpq -n -p | grep '^[*o]')"
+ 
+     set - $syspeer
+ 
+diff -urN munin-2.0.17/plugins/node.d/ntp_states.in munin-2.0.17-plugins/plugins/node.d/ntp_states.in
+--- munin-2.0.17/plugins/node.d/ntp_states.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/ntp_states.in	2013-08-17 13:18:51.820919315 +0200
+@@ -72,10 +72,10 @@
+ #  1 63933  931a   yes   yes  none   outlyer    sys_peer  1
+ #  2 63934  943a   yes   yes  none candidate    sys_peer  3
+ 
+-        foreach my $line (`ntpq -c associations`) {
++        foreach my $line (`/usr/sbin/ntpq -c associations`) {
+                 if ($line =~ m/^\s*\d+/) {
+                         my (undef, undef, $assid, undef, undef, undef, undef, $condition_str, undef, undef) = split(/\s+/, $line);
+-                        chomp(my $peerinfo = `ntpq -n -c "readvar $assid srcadr"`);
++                        chomp(my $peerinfo = `/usr/sbin/ntpq -n -c "readvar $assid srcadr"`);
+                         $peerinfo =~ s/\s//g;
+                         my ($peer_addr) = ($peerinfo =~ m/srcadr=(.*)/);
+ 
+@@ -125,17 +125,17 @@
+ }
  
  if ($ARGV[0] and $ARGV[0] eq "autoconf") {
--	`ntpq -c help >/dev/null 2>/dev/null`;
-+	`/usr/sbin/ntpq -c help >/dev/null 2>/dev/null`;
- 	if ($? eq "0") {
--		if (`ntpq -c "hostnames no" -c peers | wc -l` > 0) {
-+		if (`/usr/sbin/ntpq -c "hostnames no" -c peers | wc -l` > 0) {
- 			print "yes\n";
- 			exit 0;
- 		} else {
-@@ -45,7 +45,7 @@
- 			exit 0;
- 		}
- 	} else {
--		print "no (ntpq not found)\n";
-+		print "no (/usr/sbin/ntpq not found)\n";
- 		exit 0;
- 	}
+-        `ntpq -c help >/dev/null 2>/dev/null`;
++        `/usr/sbin/ntpq -c help >/dev/null 2>/dev/null`;
+         if ($CHILD_ERROR eq "0") {
+-                if (`ntpq -n -c peers | wc -l` > 0) {
++                if (`/usr/sbin/ntpq -n -c peers | wc -l` > 0) {
+                         print "yes\n";
+                         exit 0;
+                 } else {
+-                        print "no (ntpq -p returned no peers)\n";
++                        print "no (/usr/sbin/ntpq -p returned no peers)\n";
+                         exit 0;
+                 }
+         } else {
+-                print "no (ntpq not found)\n";
++                print "no (/usr/sbin/ntpq not found)\n";
+                 exit 0;
+         }
  }
-@@ -54,7 +54,7 @@
-         print "graph_title NTP states\n";
- 	print "graph_args --base 1000 --vertical-label msec --lower-limit 0\n";
- 	print "graph_category time\n";
--	foreach (`ntpq -c "hostnames no" -c peers`) {
-+	foreach (`/usr/sbin/ntpq -c "hostnames no" -c peers`) {
- 		next unless /^.(\d+\.\d+\.\d+\.\d+)/;
- 		next if /^.224\.0\.1\.1/;
- 		my $addr = $1;
-@@ -75,7 +75,7 @@
-         exit 0;
- }
- 
--foreach (`ntpq -c "hostnames no" -c peers`) {
-+foreach (`/usr/sbin/ntpq -c "hostnames no" -c peers`) {
- 	next unless /^(.)(\d+\.\d+\.\d+\.\d+)/;
- 	next if /^.224\.0\.1\.1/;
- 	my $state = $1;
-diff -Naur munin-1.3.4/plugins/node.d/nut_misc.in munin-1.3.4-p/plugins/node.d/nut_misc.in
---- munin-1.3.4/plugins/node.d/nut_misc.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/nut_misc.in	Fri Apr  4 11:13:06 2008
-@@ -5,7 +5,8 @@
+diff -urN munin-2.0.17/plugins/node.d/nut_misc.in munin-2.0.17-plugins/plugins/node.d/nut_misc.in
+--- munin-2.0.17/plugins/node.d/nut_misc.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/nut_misc.in	2013-08-17 13:18:51.820919315 +0200
+@@ -38,7 +38,8 @@
  my %status;
  
  my %config = (
 -	upsname => $ENV{"upsname"} ? $ENV{"upsname"} : 'bertha@127.0.0.1',
 +	upsname => $ENV{"upsname"} ? $ENV{"upsname"} : 'bertha',
 +	upshost => $ENV{"upshost"} ? $ENV{"upshost"} : '127.0.0.1',
-	upsc => $ENV{"upsc"} ? $ENV{"upsc"} : 'upsc'
+ 	upsc => $ENV{"upsc"} ? $ENV{"upsc"} : 'upsc'
  );
  
-@@ -15,11 +16,6 @@
+@@ -48,11 +49,6 @@
  				type => 'GAUGE',
  				draw => 'LINE2'
  			 },
@@ -461,7 +657,7 @@ diff -Naur munin-1.3.4/plugins/node.d/nut_misc.in munin-1.3.4-p/plugins/node.d/n
  	'battery_runtime' => {
  				label => 'runtime - min',
  				type => 'GAUGE',
-@@ -43,7 +39,12 @@
+@@ -76,7 +72,12 @@
  );
  
  if ( defined $ARGV[0] and $ARGV[0] eq 'config' ) {
@@ -475,7 +671,7 @@ diff -Naur munin-1.3.4/plugins/node.d/nut_misc.in munin-1.3.4-p/plugins/node.d/n
  	#print "graph_args -l 110\n";
  	#print "graph_vlabel Misc\n";
  	foreach my $key (keys %graph) {
-@@ -56,7 +57,7 @@
+@@ -89,7 +90,7 @@
  }
  
  sub fetch_values {
@@ -484,20 +680,20 @@ diff -Naur munin-1.3.4/plugins/node.d/nut_misc.in munin-1.3.4-p/plugins/node.d/n
  	while ($data =~ /([a-z.]+): (.+)\b/g) {
  		my $label = $1;
  		my $value = $2;
-diff -Naur munin-1.3.4/plugins/node.d/nut_volts.in munin-1.3.4-p/plugins/node.d/nut_volts.in
---- munin-1.3.4/plugins/node.d/nut_volts.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/nut_volts.in	Fri Apr  4 11:13:06 2008
-@@ -5,7 +5,8 @@
+diff -urN munin-2.0.17/plugins/node.d/nut_volts.in munin-2.0.17-plugins/plugins/node.d/nut_volts.in
+--- munin-2.0.17/plugins/node.d/nut_volts.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/nut_volts.in	2013-08-17 13:18:51.820919315 +0200
+@@ -14,7 +14,8 @@
  my %status;
  
  my %config = (
 -	upsname => $ENV{"upsname"} ? $ENV{"upsname"} : 'bertha@127.0.0.1',
 +	upsname => $ENV{"upsname"} ? $ENV{"upsname"} : 'bertha',
 +	upshost => $ENV{"upshost"} ? $ENV{"upshost"} : '127.0.0.1',
-	upsc => $ENV{"upsc"} ? $ENV{"upsc"} : 'upsc'
+ 	upsc => $ENV{"upsc"} ? $ENV{"upsc"} : 'upsc'
  );
  
-@@ -15,16 +16,6 @@
+@@ -24,16 +25,6 @@
  				type => 'GAUGE',
  				draw => 'LINE2'
  			 },
@@ -514,7 +710,7 @@ diff -Naur munin-1.3.4/plugins/node.d/nut_volts.in munin-1.3.4-p/plugins/node.d/
  	'output_voltage' => {
  				label => 'output',
  				type => 'GAUGE',
-@@ -33,7 +24,12 @@
+@@ -42,7 +33,12 @@
  );
  
  if ( defined $ARGV[0] and $ARGV[0] eq 'config' ) {
@@ -528,7 +724,7 @@ diff -Naur munin-1.3.4/plugins/node.d/nut_volts.in munin-1.3.4-p/plugins/node.d/
  	print "graph_args -l 115\n";
  	print "graph_vlabel Volts\n";
  	foreach my $key (keys %graph) {
-@@ -46,7 +42,7 @@
+@@ -55,7 +51,7 @@
  }
  
  sub fetch_values {
@@ -537,22 +733,22 @@ diff -Naur munin-1.3.4/plugins/node.d/nut_volts.in munin-1.3.4-p/plugins/node.d/
  	while ($data =~ /([a-z.]+): (.+)\b/g) {
  		my $label = $1;
  		my $value = $2;
-diff -Naur munin-1.3.4/plugins/node.d/perdition.in munin-1.3.4-p/plugins/node.d/perdition.in
---- munin-1.3.4/plugins/node.d/perdition.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/perdition.in	Fri Apr  4 11:13:06 2008
-@@ -30,7 +30,7 @@
+diff -urN munin-2.0.17/plugins/node.d/perdition.in munin-2.0.17-plugins/plugins/node.d/perdition.in
+--- munin-2.0.17/plugins/node.d/perdition.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/perdition.in	2013-08-17 13:18:51.820919315 +0200
+@@ -56,7 +56,7 @@
  # Set the location of the perdition logs
  PERDITION_LOG=${logfile:-/var/log/perdition.log}
- OFFSET_FILE=@@PLUGSTATE@@/perdition.offset
+ OFFSET_FILE=${MUNIN_PLUGSTATE}/perdition.offset
 -LOGTAIL=${logtail:-/usr/sbin/logtail}
 +LOGTAIL=${logtail:-`which logtail`}
  
  case $1 in
      autoconf|detect)
-diff -Naur munin-1.3.4/plugins/node.d/pop_stats.in munin-1.3.4-p/plugins/node.d/pop_stats.in
---- munin-1.3.4/plugins/node.d/pop_stats.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d/pop_stats.in	Fri Apr  4 11:13:06 2008
-@@ -67,7 +67,9 @@
+diff -urN munin-2.0.17/plugins/node.d/pop_stats.in munin-2.0.17-plugins/plugins/node.d/pop_stats.in
+--- munin-2.0.17/plugins/node.d/pop_stats.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/pop_stats.in	2013-08-17 13:18:51.820919315 +0200
+@@ -68,7 +68,9 @@
  if ($startsize < $pos)
  {
  	# Log rotated
@@ -563,10 +759,56 @@ diff -Naur munin-1.3.4/plugins/node.d/pop_stats.in munin-1.3.4-p/plugins/node.d/
  	$pos = 0;
  }
  
-diff -Naur munin-1.3.4/plugins/node.d.linux/iostat.in munin-1.3.4-p/plugins/node.d.linux/iostat.in
---- munin-1.3.4/plugins/node.d.linux/iostat.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d.linux/iostat.in	Fri Apr  4 11:13:06 2008
-@@ -146,7 +146,7 @@
+diff -urN munin-2.0.17/plugins/node.d/postgres_scans_.in munin-2.0.17-plugins/plugins/node.d/postgres_scans_.in
+--- munin-2.0.17/plugins/node.d/postgres_scans_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/postgres_scans_.in	2013-08-17 13:18:51.820919315 +0200
+@@ -65,7 +65,6 @@
+     vlabel   => 'Scans / sec',
+     basequery =>
+         "SELECT COALESCE(sum(seq_scan),0) AS sequential, COALESCE(sum(idx_scan),0) AS index FROM pg_stat_user_tables",
+-    paramdatabase => 1,
+     pivotquery    => 1,
+     configquery =>
+         "VALUES ('sequential','Sequential scans'), ('index','Index scans')",
+diff -urN munin-2.0.17/plugins/node.d/postgres_tuples_.in munin-2.0.17-plugins/plugins/node.d/postgres_tuples_.in
+--- munin-2.0.17/plugins/node.d/postgres_tuples_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/postgres_tuples_.in	2013-08-17 13:18:51.820919315 +0200
+@@ -74,7 +74,6 @@
+                 . " COALESCE(sum(n_tup_del),0) AS deleted FROM pg_stat_user_tables",
+         ],
+     ],
+-    paramdatabase => 1,
+     pivotquery    => 1,
+     configquery   => [
+         "VALUES ('seqread','Tuples sequentally read'), ('idxfetch','Tuples index fetched'), ('inserted','Tuples inserted'),"
+diff -urN munin-2.0.17/plugins/node.d/slapd_.in munin-2.0.17-plugins/plugins/node.d/slapd_.in
+--- munin-2.0.17/plugins/node.d/slapd_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d/slapd_.in	2013-08-17 13:18:51.820919315 +0200
+@@ -37,7 +37,7 @@
+ 
+ # Change these to reflect your LDAP ACL. The given DN must have
+ # read access to the Monitor branch.
+-my $basedn = "cn=Monitor";
++my $basedn = ($ENV{'basedn'} || "cn=Monitor");
+ my $server = ($ENV{'server'} || 'localhost');
+ my $userdn = ($ENV{'binddn'} || '');
+ my $userpw = ($ENV{'bindpw'} || '');
+diff -urN munin-2.0.17/plugins/node.d.linux/files_.in munin-2.0.17-plugins/plugins/node.d.linux/files_.in
+--- munin-2.0.17/plugins/node.d.linux/files_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/files_.in	2013-08-17 13:18:51.820919315 +0200
+@@ -14,7 +14,7 @@
+ #%# capabilities=autoconf
+ 
+ PROC=${0##*/files_}
+-TMPFILE="$MUNIN_PLUGSTATE/munin-files_${PROC}.state"
++TMPFILE="@@PLUGSTATE@@/munin-files_${PROC}.state"
+ 
+ if [ "$1" = "autoconf" ]; then
+ 	if [ -x /usr/sbin/lsof ]; then
+diff -urN munin-2.0.17/plugins/node.d.linux/iostat.in munin-2.0.17-plugins/plugins/node.d.linux/iostat.in
+--- munin-2.0.17/plugins/node.d.linux/iostat.in	2013-08-17 13:19:03.504395523 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/iostat.in	2013-08-17 13:18:51.994254767 +0200
+@@ -173,7 +173,7 @@
  		if ($tmpnam =~ /\d+$/ and !$include_numbered) {
  		    # Special case for devices like cXdXpX,
  		    # like the cciss driver
@@ -575,60 +817,107 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/iostat.in munin-1.3.4-p/plugins/node
  		}
  		next unless grep { $_ } @fields;
  
-diff -Naur munin-1.3.4/plugins/node.d.linux/load.in munin-1.3.4-p/plugins/node.d.linux/load.in
---- munin-1.3.4/plugins/node.d.linux/load.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d.linux/load.in	Fri Apr  4 11:15:15 2008
-@@ -35,20 +35,20 @@
- 	# one machine answer for several)
+diff -urN munin-2.0.17/plugins/node.d.linux/ip_.in munin-2.0.17-plugins/plugins/node.d.linux/ip_.in
+--- munin-2.0.17/plugins/node.d.linux/ip_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/ip_.in	2013-08-17 13:18:51.820919315 +0200
+@@ -127,14 +127,18 @@
+         # This is a fun hack to make the plugin ip6 compatible.
+         # Suggested in ticket #439 by "jodal".
+         eval 'iptables() {
+-            ip6tables "$@"
++            /usr/sbin/ip6tables "$@"
++        }'
++        ;;
++    *) eval 'iptables() {
++            /usr/sbin/iptables "$@"
+         }'
+         ;;
+ esac
  
- 	# The title of the graph
--	echo 'graph_title Load average'
-+	echo "graph_title Load average"
- 	# Arguments to "rrdtool graph". In this case, tell it that the
- 	# lower limit of the graph is '0', and that 1k=1000 (not 1024)
--	echo 'graph_args --base 1000 -l 0'
-+	echo "graph_args --base 1000 -l 0"
- 	# The Y-axis label
--	echo 'graph_vlabel load'
-+	echo "graph_vlabel load"
- 	# We want Cur/Min/Avg/Max unscaled (i.e. 0.42 load instead of
- 	# 420 milliload)
--	echo 'graph_scale no'
-+	echo "graph_scale no"
- 	# Graph category. Defaults to 'other'
--	echo 'graph_category system'
-+	echo "graph_category system"
- 	# The fields. "label" is used in the legend. "label" is the only
- 	# required subfield. 
--	echo 'load.label load'
-+	echo "load.label load"
- 	# These two read the environment for warning values for the field
- 	# "load".  If "load_warning" or "warning" aren't set in the
- 	# environment, no warning levels are set.  Likewise for "load_critical"
-@@ -57,8 +57,8 @@
- 	# This one is purely to add an explanation to the web page. The first
- 	# one is for the graph itself, while the second one is for the field
- 	# "load".
--	echo 'graph_info The load average of the machine describes how many processes are in the run-queue (scheduled to run "immediately").'
--	echo 'load.info 5 minute load average'
-+	echo "graph_info The load average of the machine describes how many processes are in the run-queue (scheduled to run \"immediately\")."
-+	echo "load.info 5 minute load average"
+ if [[ "$1" == "autoconf" ]]; then
+     if [[ -r /proc/net/dev ]]; then
+-        if ! iptables -L ${INPUT} -v -n -x >/dev/null 2>/dev/null; then
++        if ! /usr/sbin/iptables -L ${INPUT} -v -n -x >/dev/null 2>/dev/null; then
+             echo "no (could not run iptables as user $(whoami))"
+             exit 0
+         else
+@@ -147,10 +151,10 @@
+     fi
+ fi
  
- 	# Last, if run with the "config"-parameter, quit here (don't
- 	# display any data)
-diff -Naur munin-1.3.4/plugins/node.d.linux/nfs_client.in munin-1.3.4-p/plugins/node.d.linux/nfs_client.in
---- munin-1.3.4/plugins/node.d.linux/nfs_client.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d.linux/nfs_client.in	Fri Apr  4 11:13:06 2008
-@@ -11,7 +11,7 @@
+-if [[ "$1" == "suggest" ]]; then
+-    iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
+-    if [[ -x /sbin/ip6tables ]]; then
+-        ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
++if [ "$1" = "suggest" ]; then
++    /usr/sbin/iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
++    if [[ -x /usr/sbin/ip6tables ]]; then
++        /usr/sbin/ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
+     fi
+     exit 0
+ fi
+@@ -183,5 +187,5 @@
+ 
+ # Escape .'s so they don't match _everything_?
+ IP=$(echo $IP | sed 's~\.~\\.~g')
+-iptables -L ${INPUT} -v -n -x   | awk "/$IP"'[ /]/ { print "in.value " $2; exit 0; }'
+-iptables -L ${OUTPUT} -v -n -x  | awk "/$IP"'[ /]/ { print "out.value " $2; exit 0; }'
++/usr/sbin/iptables -L ${INPUT} -v -n -x   | awk "/$IP"'[ \/]/ { print "in.value " $2; exit 0; }'
++/usr/sbin/iptables -L ${OUTPUT} -v -n -x  | awk "/$IP"'[ \/]/ { print "out.value " $2; exit 0; }'
+diff -urN munin-2.0.17/plugins/node.d.linux/load.in munin-2.0.17-plugins/plugins/node.d.linux/load.in
+--- munin-2.0.17/plugins/node.d.linux/load.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/load.in	2013-08-17 13:18:51.820919315 +0200
+@@ -59,20 +59,20 @@
+         # one machine answer for several)
+ 
+         # The title of the graph
+-        echo 'graph_title Load average'
++        echo "graph_title Load average"
+         # Arguments to "rrdtool graph". In this case, tell it that the
+         # lower limit of the graph is '0', and that 1k=1000 (not 1024)
+-        echo 'graph_args --base 1000 -l 0'
++        echo "graph_args --base 1000 -l 0"
+         # The Y-axis label
+-        echo 'graph_vlabel load'
++        echo "graph_vlabel load"
+         # We want Cur/Min/Avg/Max unscaled (i.e. 0.42 load instead of
+         # 420 milliload)
+-        echo 'graph_scale no'
++        echo "graph_scale no"
+         # Graph category. Defaults to 'other'
+-        echo 'graph_category system'
++        echo "graph_category system"
+         # The fields. "label" is used in the legend. "label" is the only
+         # required subfield.
+-        echo 'load.label load'
++        echo "load.label load"
+         # These two read the environment for warning values for the field
+         # "load".  If "load_warning" or "warning" aren't set in the
+         # environment, no warning levels are set.  Likewise for "load_critical"
+@@ -82,8 +82,8 @@
+         # This one is purely to add an explanation to the web page. The first
+         # one is for the graph itself, while the second one is for the field
+         # "load".
+-        echo 'graph_info The load average of the machine describes how many processes are in the run-queue (scheduled to run "immediately").'
+-        echo 'load.info 5 minute load average'
++        echo "graph_info The load average of the machine describes how many processes are in the run-queue (scheduled to run \"immediately\")."
++        echo "load.info 5 minute load average"
+ 
+         # Last, if run with the "config"-parameter, quit here (don't
+         # display any data)
+diff -urN munin-2.0.17/plugins/node.d.linux/nfs_client.in munin-2.0.17-plugins/plugins/node.d.linux/nfs_client.in
+--- munin-2.0.17/plugins/node.d.linux/nfs_client.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/nfs_client.in	2013-08-17 13:18:51.820919315 +0200
+@@ -31,7 +31,7 @@
  proc="getattr setattr lookup access readlink read write create mkdir symlink mknod remove rmdir rename link readdir readdirplus fsstat fsinfo pathconf commit"
  
  if [ "$1" = "autoconf" ]; then
--	if [ -x "$NFS" ]; then
+-	if [ -f "$NFS" ]; then
 +	if [ -r "$NFS" ]; then
  		echo yes
  		exit 0
  	else
-@@ -31,11 +31,66 @@
+@@ -51,11 +51,66 @@
  	exit 0
  fi
  
@@ -702,10 +991,10 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfs_client.in munin-1.3.4-p/plugins/
 +	print "commit.value " nfs_commit
  }' $NFS
 -
-diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d.linux/nfsd.in
---- munin-1.3.4/plugins/node.d.linux/nfsd.in	Sat Mar  8 02:42:39 2008
-+++ munin-1.3.4-p/plugins/node.d.linux/nfsd.in	Fri Apr  4 11:13:06 2008
-@@ -12,7 +12,7 @@
+diff -urN munin-2.0.17/plugins/node.d.linux/nfsd.in munin-2.0.17-plugins/plugins/node.d.linux/nfsd.in
+--- munin-2.0.17/plugins/node.d.linux/nfsd.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/nfsd.in	2013-08-17 13:18:51.820919315 +0200
+@@ -31,7 +31,7 @@
  proc="getattr setattr lookup access readlink read write create mkdir symlink mknod remove rmdir rename link readdir readdirplus fsstat fsinfo pathconf commit"
  
  if [ "$1" = "autoconf" ]; then
@@ -714,7 +1003,7 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  		echo yes
  		exit 0
  	else
-@@ -32,9 +32,66 @@
+@@ -51,9 +51,66 @@
  	exit 0
  fi
  
@@ -787,55 +1076,9 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
 +	print "pathconf.value " nfs_pathconf
 +	print "commit.value " nfs_commit
 +}' $NFSD
---- munin-1.3.4/plugins/node.d.linux/ip_.in~	2008-03-08 02:42:39.000000000 +0100
-+++ munin-1.3.4/plugins/node.d.linux/ip_.in	2008-05-20 13:00:17.000000000 +0200
-@@ -113,15 +113,19 @@
-     *:*) # I know this! This is IPv6!
- 	# This is a fun hack to make the plugin ip6 compatible.
- 	# Suggested in ticket #439 by "jodal".
--	eval 'function iptables() {
--	    /sbin/ip6tables "$@"
-+	eval 'iptables() {
-+	    /usr/sbin/ip6tables "$@"
-+	}'
-+	;;
-+    *) eval 'iptables() {
-+	    /usr/sbin/iptables "$@"
- 	}'
- 	;;
- esac
- 
- if [ "$1" = "autoconf" ]; then
- 	if [ -r /proc/net/dev ]; then
--		iptables -L ${INPUT} -v -n -x >/dev/null 2>/dev/null
-+		/usr/sbin/iptables -L ${INPUT} -v -n -x >/dev/null 2>/dev/null
- 		if [ $? -gt 0 ]; then
- 			echo "no (could not run iptables as user `whoami`)"
- 			exit 0
-@@ -136,9 +140,9 @@
- fi
- 
- if [ "$1" = "suggest" ]; then
--    iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
--    if [ -x /sbin/ip6tables ]; then
-- 	ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
-+    /usr/sbin/iptables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$8 ~ /^([0-9]{1,3}\.){3}[0-9]{1,3}$/ { if (done[$8]!=1) {print $8; done[$8]=1;}}'
-+    if [ -x /usr/sbin/ip6tables ]; then
-+ 	/usr/sbin/ip6tables -L ${INPUT} -v -n -x 2>/dev/null | awk --posix '$7 ~ /\/128$/ { if (done[$7]!=1) {a=$7;gsub(/\/128$/, "", a); print a; done[$7]=1;}}'
-     fi
-     exit 0
- fi
-@@ -173,6 +177,5 @@
- # Escape .'s so they don't match _everything_?
- IP="$( echo $IP | sed 's~\.~\\.~g' )"
- 
--iptables -L ${INPUT} -v -n -x   | awk "/$IP"'[ /]/ { print "in.value " $2; exit 0; }'
--
--iptables -L ${OUTPUT} -v -n -x  | awk "/$IP"'[ /]/ { print "out.value " $2; exit 0; }'
-+iptables -L ${INPUT} -v -n -x   | awk "/$IP"'[ \/]/ { print "in.value " $2; exit 0; }'
-+iptables -L ${OUTPUT} -v -n -x  | awk "/$IP"'[ \/]/ { print "out.value " $2; exit 0; }'
---- munin-1.3.4/plugins/node.d.linux/vlan_inetuse_.in~	2008-03-08 02:42:39.000000000 +0100
-+++ munin-1.3.4/plugins/node.d.linux/vlan_inetuse_.in	2008-05-20 13:00:50.000000000 +0200
+diff -urN munin-2.0.17/plugins/node.d.linux/vlan_inetuse_.in munin-2.0.17-plugins/plugins/node.d.linux/vlan_inetuse_.in
+--- munin-2.0.17/plugins/node.d.linux/vlan_inetuse_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/vlan_inetuse_.in	2013-08-17 13:18:51.820919315 +0200
 @@ -37,8 +37,8 @@
  my %in_octets = ();
  my %out_octets = ();
@@ -870,8 +1113,9 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  
  if ($ARGV[0] and $ARGV[0] eq "config")
  {
---- munin-1.3.4/plugins/node.d.linux/vlan_linkuse_.in~	2008-03-08 02:42:39.000000000 +0100
-+++ munin-1.3.4/plugins/node.d.linux/vlan_linkuse_.in	2008-05-20 13:01:48.000000000 +0200
+diff -urN munin-2.0.17/plugins/node.d.linux/vlan_linkuse_.in munin-2.0.17-plugins/plugins/node.d.linux/vlan_linkuse_.in
+--- munin-2.0.17/plugins/node.d.linux/vlan_linkuse_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/vlan_linkuse_.in	2013-08-17 13:18:51.820919315 +0200
 @@ -29,8 +29,8 @@
  my %in_octets = ();
  my %out_octets = ();
@@ -904,124 +1148,10 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
 -die "Error running iptables. Dying\n" if $?;
 +die "Error running /usr/sbin/iptables. Dying\n" if $?;
  # vim:syntax=perl
---- munin-1.3.4/plugins/node.d/amavis.in~	2008-03-08 02:42:39.000000000 +0100
-+++ munin-1.3.4/plugins/node.d/amavis.in	2009-03-16 16:30:48.000000000 +0100
-@@ -59,8 +59,7 @@
- 
- 
- mktempfile () {
--    cmd=`echo $MUNIN_MKTEMP | sed s/\\$1/$1/`
--    $cmd
-+    mktemp -p /tmp/ $1
- }
- 
- AMAVIS_LOG=${amavislog:-/var/log/mail/mail.info}
-@@ -87,7 +87,7 @@
- 
- if [ "$1" = "config" ]; then
- 	echo 'graph_title Amavis filter statistics'
--	echo 'graph_vlabel \#'
-+	echo 'graph_vlabel mails'
- 	echo 'graph_category antivirus'
- 	echo 'virus.label virus'
- 	echo 'virus.info Number of viruses caught in email'
-@@ -105,7 +105,7 @@
- spamm=U
- spams=U
- 
--TEMP_FILE=$(mktempfile munin-amavis.XXXXXX)
-+TEMP_FILE=$(mktempfile munin-amavis.XXXXXXXXXX)
- 
- if [ -n "$TEMP_FILE" -a -f "$TEMP_FILE" ]
- then
---- munin-1.3.4/plugins/node.d/hddtemp_smartctl.in.	2009-04-14 17:29:08.000000000 +0200
-+++ munin-1.3.4/plugins/node.d/hddtemp_smartctl.in	2008-03-08 02:42:39.000000000 +0100
-@@ -126,7 +126,7 @@
-   } elsif ($ARGV[0] eq 'config') {
-     print "graph_title HDD temperature\n";
-     print "graph_args --base 1000 -l 0\n";
--    print "graph_vlabel temp in °C\n";
-+    print "graph_vlabel temp in Â°C\n";
-     print "graph_category sensors\n";
-     print "graph_info This graph shows the temperature in degrees Celsius of the hard drives in the machine.\n";
-     print "$_.label $_\n" foreach @drives;
---- munin-1.4.0/plugins/node.d.linux/vserver_cpu_.in~	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0/plugins/node.d.linux/vserver_cpu_.in	2009-11-30 23:37:51.904724363 +0100
-@@ -209,11 +209,11 @@
- 			NAME=`echo $LABEL | cut -d. -f1 |  tr '-' '_'`
- 			echo -n "${NAME}_$j.value "
- 			if [ "$MODE" == "cpu" ] ; then
--				USERCPU=`cat /proc/virtual/$i/sched |grep "cpu $j"| cut -d' ' -f3`
--				SYSCPU=`cat /proc/virtual/$i/sched |grep "cpu $j"| cut -d' ' -f4`
-+				USERCPU=`cat /proc/virtual/$i/sched |grep "cpu $j:"| cut -d' ' -f3`
-+				SYSCPU=`cat /proc/virtual/$i/sched |grep "cpu $j:"| cut -d' ' -f4`
- 	 			echo $[$USERCPU + $SYSCPU]
- 			else
--				cat /proc/virtual/$i/sched |grep "cpu $j"| cut -d' ' -f5
-+				cat /proc/virtual/$i/sched |grep "cpu $j:"| cut -d' ' -f5
- 			fi
- 		fi	
- 	done
---- munin-1.4.0/plugins/node.d/amavis.in~	2009-11-30 22:51:19.559661327 +0100
-+++ munin-1.4.0/plugins/node.d/amavis.in	2009-11-30 23:58:17.188697242 +0100
-@@ -81,7 +81,7 @@
- 
- AMAVIS_LOG=${amavislog:-/var/log/mail/mail.info}
- LOGTAIL=${logtail:-logtail}
--STATEFILE=$MUNIN_PLUGSTATE/amavis.offset
-+STATEFILE=@@PLUGSTATE@@/amavis.offset
- 
- if [ "$1" = "autoconf" ]; then
-         if [ -f "${AMAVIS_LOG}" -a -n "${LOGTAIL}" -a -x "${LOGTAIL}" ] ; then
---- munin-1.4.0/plugins/node.d/bind9.in~	2009-11-30 22:51:19.454661434 +0100
-+++ munin-1.4.0/plugins/node.d/bind9.in	2009-11-30 23:58:58.897786717 +0100
-@@ -33,7 +33,7 @@
- use strict;
- 
- my $QUERYLOG = $ENV{logfile} || '/var/log/bind9/query.log';
--my $STATEFILE= $ENV{MUNIN_PLUGSTATE}.'/bind9.state';
-+my $STATEFILE= "@@PLUGSTATE@@/bind9.state";
- my $OTHER=0;
- my %IN;
- 
---- munin-1.4.0/plugins/node.d/foldingathome_rank.in~	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0/plugins/node.d/foldingathome_rank.in	2009-12-01 00:00:55.992661939 +0100
-@@ -13,7 +13,7 @@
- #%# family=contrib
- #%# capabilities=autoconf
- 
--statefile=$MUNIN_PLUGSTATE/plugin-fah_rank.state
-+statefile=@@PLUGSTATE@@/plugin-fah_rank.state
- 
- if [ "$1" = "autoconf" ]; then
-     # No real check of anything
---- munin-1.4.0/plugins/node.d.linux/files_.in~	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0/plugins/node.d.linux/files_.in	2009-12-01 00:03:16.224727207 +0100
-@@ -14,7 +14,7 @@
- #%# capabilities=autoconf
- 
- PROC=${0##*/files_}
--TMPFILE="$MUNIN_PLUGSTATE/munin-files_${PROC}.state"
-+TMPFILE="@@PLUGSTATE@@/munin-files_${PROC}.state"
- 
- if [ "$1" = "autoconf" ]; then
- 	if [ -x /usr/sbin/lsof ]; then
---- munin-1.4.0/plugins/node.d/slapd_.in~	2009-11-27 12:17:11.000000000 +0100
-+++ munin-1.4.0/plugins/node.d/slapd_.in	2009-12-01 23:43:43.736623052 +0100
-@@ -36,8 +36,8 @@
- 
- # Change these to reflect your LDAP ACL. The given DN must have
- # read access to the Monitor branch.
--my $basedn = "cn=Monitor";
--my $server = "localhost";
-+my $basedn = ($ENV{'basedn'} || "cn=Monitor");
-+my $server = ($ENV{'server'} || "localhost");
- my $userdn = ($ENV{'binddn'} || '');
- my $userpw = ($ENV{'bindpw'} || '');
- 
---- munin/plugins/node.d.linux/vserver_resources.in~	2008-11-28 18:36:22.000000000 +0100
-+++ munin/plugins/node.d.linux/vserver_resources.in	2008-11-29 01:39:40.000000000 +0100
-@@ -188,6 +188,12 @@
+diff -urN munin-2.0.17/plugins/node.d.linux/vserver_resources.in munin-2.0.17-plugins/plugins/node.d.linux/vserver_resources.in
+--- munin-2.0.17/plugins/node.d.linux/vserver_resources.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-plugins/plugins/node.d.linux/vserver_resources.in	2013-08-17 13:18:51.820919315 +0200
+@@ -245,6 +245,12 @@
  	    echo 'graph_vlabel ANON pages'
  	    echo 'graph_info Shows anonymous memory (human readable) used by each vserver.'
  	    ;;
@@ -1034,7 +1164,7 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  	FILES)
  	    echo 'graph_title Files used by vserver'
  	    echo 'graph_args --base 1024k -l 0'
-@@ -224,6 +230,30 @@
+@@ -281,6 +287,30 @@
  	    echo 'graph_vlabel SHM pages'
  	    echo 'graph_info Shows shared memory (human readable) used by each vserver.'
  	    ;;
@@ -1065,7 +1195,7 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  	*)
  	    echo "$RESOURCE not defined."
  	    exit 1
-@@ -242,53 +272,108 @@
+@@ -299,53 +329,108 @@
  
  	case "$RESOURCE" in
  	    PROC)
@@ -1201,7 +1331,7 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  		;;
  	    *)
  		echo "$RESOURCE not defined."
-@@ -299,7 +384,7 @@
+@@ -356,7 +441,7 @@
  	if [ ! -z "$LIMITS" -a "$LIMITS" = 1 ]; then
  	    LIMIT=`cat /proc/virtual/$xid/limit | grep $RESOURCE | cut -f4`
  	    if [ ${LIMIT:-0} -gt 0 ]; then
@@ -1210,7 +1340,7 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
  	    fi
  	fi
      done
-@@ -310,8 +395,15 @@
+@@ -367,8 +452,15 @@
  for xid in $XIDS ; do
      LABEL=`cat /proc/virtual/$xid/$NAMELOC |grep NodeName |cut -f2`
      NAME=`echo $LABEL | cut -d. -f1 |  tr '-' '_'`
@@ -1230,145 +1360,3 @@ diff -Naur munin-1.3.4/plugins/node.d.linux/nfsd.in munin-1.3.4-p/plugins/node.d
 +    fi
  done
 -
---- munin-1.4.0/plugins/node.d/ntp_offset.in~	2009-11-27 12:17:11.000000000 +0100
-+++ munin-1.4.0/plugins/node.d/ntp_offset.in	2009-12-16 13:28:05.942149904 +0100
-@@ -38,9 +38,9 @@
- =cut
- 
- do_autoconf () {
--    ntpq -c help >/dev/null 2>&1 || { echo 'no (no ntpq program)'; exit 0; }
-+    /usr/sbin/ntpq -c help >/dev/null 2>&1 || { echo 'no (no ntpq program)'; exit 0; }
-     
--    case "$(ntpq -n -p 2>/dev/null | wc -l)" in
-+    case "$(/usr/sbin/ntpq -n -p 2>/dev/null | wc -l)" in
- 	0)
-             echo 'no (unable to list peers)'
- 	    exit 0
-@@ -57,7 +57,7 @@
- }
- 
- do_config () {
--    syspeer="$(ntpq -n -p | grep '^[*o]')"
-+    syspeer="$(/usr/sbin/ntpq -n -p | grep '^[*o]')"
- 
-     set - $syspeer
- 
-@@ -89,7 +89,7 @@
- 
- do_ () {
-     # Fetch operation
--    syspeer="$(ntpq -n -p | grep '^[*o]')"
-+    syspeer="$(/usr/sbin/ntpq -n -p | grep '^[*o]')"
- 
-     set - $syspeer
- 
---- munin-1.4.0/plugins/node.d/ntp_kernel_err.in~	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0/plugins/node.d/ntp_kernel_err.in	2009-12-16 13:29:00.494146341 +0100
-@@ -33,7 +33,7 @@
- 
- if [ "$1" = "autoconf" ]; then
-     # Not all ntpdc's are equal
--    ntpdc -c kern 2>/dev/null | 
-+    /usr/sbin/ntpdc -c kern 2>/dev/null | 
-     awk 'BEGIN { ev=1; }
-          /^estimated error:/ { ev=0; } 
-          END { if (ev == 0) { print "yes";} else { print "no"; } exit ev; }'
-@@ -51,4 +51,4 @@
- fi
- 
- echo -n 'ntp_err.value '
--ntpdc -c kern | awk '/^estimated error:/ { print $3 }'
-+/usr/sbin/ntpdc -c kern | awk '/^estimated error:/ { print $3 }'
---- munin-1.4.0/plugins/node.d/ntp_kernel_pll_freq.in~	2009-12-15 20:45:10.715504269 +0100
-+++ munin-1.4.0/plugins/node.d/ntp_kernel_pll_freq.in	2009-12-16 13:29:26.464147058 +0100
-@@ -39,7 +39,7 @@
- # $Id$
- 
- if [ "$1" = "autoconf" ]; then
--    ntpdc -c kern 2>/dev/null | 
-+    /usr/sbin/ntpdc -c kern 2>/dev/null | 
-     awk 'BEGIN { ev=1; }
-          /^pll frequency:/ { ev=0; } 
-          END { if (ev == 0) { print "yes";} else { print "no"; } exit ev; }'
-@@ -64,4 +64,4 @@
- fi
- 
- echo -n 'ntp_pll_freq.value '
--ntpdc -c kern | awk -v fcomp=$fcomp '/^pll frequency:/ { print $3 + fcomp }'
-+/usr/sbin/ntpdc -c kern | awk -v fcomp=$fcomp '/^pll frequency:/ { print $3 + fcomp }'
---- munin-1.4.0/plugins/node.d/ntp_kernel_pll_off.in~	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0/plugins/node.d/ntp_kernel_pll_off.in	2009-12-16 13:29:45.228087885 +0100
-@@ -32,7 +32,7 @@
- # $Id$
- 
- if [ "$1" = "autoconf" ]; then
--    ntpdc -c kern 2>/dev/null | 
-+    /usr/sbin/ntpdc -c kern 2>/dev/null | 
-     awk 'BEGIN { ev=1; }
-          /^pll offset:/ { ev=0; } 
-          END { if (ev == 0) { print "yes";} else { print "no"; } exit ev; }'
-@@ -50,4 +50,4 @@
- fi
- 
- echo -n 'ntp_pll_off.value '
--ntpdc -c kern | awk '/^pll offset:/ { print $3 }'
-+/usr/sbin/ntpdc -c kern | awk '/^pll offset:/ { print $3 }'
---- munin-1.4.3/plugins/node.d/mysql_.in~	2009-12-30 13:55:55.000000000 +0100
-+++ munin-1.4.3/plugins/node.d/mysql_.in	2010-02-02 11:54:49.990957765 +0100
-@@ -34,6 +34,7 @@
-     env.mysqlconnection DBI:mysql:mysql;host=127.0.0.1;port=3306
-     env.mysqluser root
-     env.mysqlpassword geheim
-+    env.mysqlnosuperpriv 1
- 
- 
- =head1 DEPENDENCIES
-@@ -133,6 +134,7 @@
-     'dsn'        => $ENV{'mysqlconnection'} || 'DBI:mysql:mysql',
-     'user'       => $ENV{'mysqluser'}       || 'root',
-     'password'   => $ENV{'mysqlpassword'}   || '',
-+    'nosuper'    => $ENV{'mysqlnosuperpriv'} || 0,
- );
- 
- 
-@@ -900,8 +902,10 @@
- 
-     update_variables($dbh);
-     update_innodb($dbh);
--    update_master($dbh);
--    update_slave($dbh);
-+    if (!$config{nosuper}) {
-+	update_master($dbh);
-+	update_slave($dbh);
-+    }
- 
-     $shared_memory_cache->set('data', $data);
- }
---- munin-1.4.3/plugins/node.d/mysql_innodb.in~	2010-02-02 11:45:17.943837759 +0100
-+++ munin-1.4.3/plugins/node.d/mysql_innodb.in	2010-02-02 12:03:04.019832112 +0100
-@@ -1,4 +1,4 @@
--#!@@GOODSH@@
-+#!@@BASH@@
- 
- : << =cut
- 
---- munin-1.4.3/plugins/node.d/postgres_tuples_.in~	2009-12-30 13:55:55.000000000 +0100
-+++ munin-1.4.3/plugins/node.d/postgres_tuples_.in	2010-02-02 14:45:43.592833166 +0100
-@@ -74,7 +74,6 @@
-                 . " COALESCE(sum(n_tup_del),0) AS deleted FROM pg_stat_user_tables",
-         ],
-     ],
--    paramdatabase => 1,
-     pivotquery    => 1,
-     configquery   => [
-         "VALUES ('seqread','Tuples sequentally read'), ('idxfetch','Tuples index fetched'), ('inserted','Tuples inserted'),"
---- munin-1.4.3/plugins/node.d/postgres_scans_.in~	2009-12-30 13:55:55.000000000 +0100
-+++ munin-1.4.3/plugins/node.d/postgres_scans_.in	2010-02-02 14:46:06.139957913 +0100
-@@ -65,7 +65,6 @@
-     vlabel   => 'Scans / sec',
-     basequery =>
-         "SELECT COALESCE(sum(seq_scan),0) AS sequential, COALESCE(sum(idx_scan),0) AS index FROM pg_stat_user_tables",
--    paramdatabase => 1,
-     pivotquery    => 1,
-     configquery =>
-         "VALUES ('sequential','Sequential scans'), ('index','Index scans')",

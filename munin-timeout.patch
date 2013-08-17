@@ -1,9 +1,9 @@
 --- munin-1.4.0/master/lib/Munin/Master/Node.pm~	2009-11-27 12:17:17.000000000 +0100
 +++ munin-1.4.0/master/lib/Munin/Master/Node.pm	2009-12-01 17:33:33.041187499 +0100
 @@ -27,7 +27,7 @@
-         tls     => undef,
-         socket  => undef,
-         master_capabilities => qw(multigraph),
+         pid     => undef,
+         writer  => undef,
+         master_capabilities => "multigraph dirtyconfig",
 -        io_timeout => 120,
 +        io_timeout => $config->{timeout},
  	configref => $configref,

@@ -1,6 +1,6 @@
-diff -ur munin-1.4.0/common/lib/Munin/Common/Defaults.pm munin-1.4.0.configs/common/lib/Munin/Common/Defaults.pm
---- munin-1.4.0/common/lib/Munin/Common/Defaults.pm	2009-11-30 17:45:38.228724308 +0100
-+++ munin-1.4.0.configs/common/lib/Munin/Common/Defaults.pm	2009-11-30 17:36:32.000000000 +0100
+diff -ur munin-2.0.17/common/lib/Munin/Common/Defaults.pm munin-2.0.17-sep/common/lib/Munin/Common/Defaults.pm
+--- munin-2.0.17/common/lib/Munin/Common/Defaults.pm	2013-08-17 12:26:06.386624187 +0200
++++ munin-2.0.17-sep/common/lib/Munin/Common/Defaults.pm	2013-08-17 12:19:22.386149494 +0200
 @@ -18,7 +18,8 @@
  our $DROPDOWNLIMIT     = 1;
  
@@ -11,10 +11,32 @@ diff -ur munin-1.4.0/common/lib/Munin/Common/Defaults.pm munin-1.4.0.configs/com
  our $MUNIN_BINDIR     = '';
  our $MUNIN_SBINDIR    = '';
  our $MUNIN_DOCDIR     = '';
-diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
---- munin-1.4.0/Makefile	2009-11-30 17:45:38.231724115 +0100
-+++ munin-1.4.0.configs/Makefile	2009-11-30 17:23:36.000000000 +0100
-@@ -50,7 +50,7 @@
+Only in munin-2.0.17/common/lib/Munin/Common: Defaults.pm.orig
+diff -ur munin-2.0.17/doc/installation/configuration.rst munin-2.0.17-sep/doc/installation/configuration.rst
+--- munin-2.0.17/doc/installation/configuration.rst	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/doc/installation/configuration.rst	2013-08-17 12:23:16.773630125 +0200
+@@ -9,7 +9,7 @@
+ -------
+ 
+ Decide which plugins to use. The munin node runs all plugins present
+-in CONFDIR/plugins/
++in NCONFDIR/plugins/
+ 
+ The quick auto-plug-and-play solution:
+ 
+@@ -59,7 +59,7 @@
+ Add some nodes
+ --------------
+ 
+-Add some nodes to CONFDIR/munin.conf
++Add some nodes to MCONFDIR/munin.conf
+ 
+ [node.example.com]
+   address 192.0.2.4
+diff -ur munin-2.0.17/Makefile munin-2.0.17-sep/Makefile
+--- munin-2.0.17/Makefile	2013-08-17 12:26:06.386624187 +0200
++++ munin-2.0.17-sep/Makefile	2013-08-17 12:19:22.386149494 +0200
+@@ -56,7 +56,7 @@
  # a new config.  Target _only_ suitable for maintainers.
  unconfig:
  	rm -f $(HTMLDIR)/.htaccess
@@ -23,25 +45,26 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
  
  tags:
  	-rm -f TAGS
-@@ -68,13 +68,14 @@
- 	@$(CHECKUSER)
+@@ -71,14 +71,15 @@
  	mkdir -p $(LOGDIR)
  	mkdir -p $(STATEDIR)
+ 	mkdir -p $(SPOOLDIR)
 -	mkdir -p $(CONFDIR)
 +	mkdir -p $(NCONFDIR)
 +	mkdir -p $(MCONFDIR)
- 	$(CHOWN) $(USER) $(LOGDIR) $(STATEDIR)
+ 	$(CHOWN) $(USER) $(LOGDIR) $(STATEDIR) $(SPOOLDIR)
  
  install-master-prime: $(INFILES_MASTER) install-pre install-master
  	mkdir -p $(TEMPLATEDIR)
+ 	mkdir -p $(TEMPLATEDIR)/static
  	mkdir -p $(TEMPLATEDIR)/partial
 -	mkdir -p $(CONFDIR)/munin-conf.d
 +	mkdir -p $(MCONFDIR)/munin-conf.d
  	mkdir -p $(LIBDIR)
  	mkdir -p $(BINDIR)
  	mkdir -p $(SBINDIR)
-@@ -98,7 +99,7 @@
- 	$(INSTALL) -m 0755 master/VeraMono.ttf $(LIBDIR)/
+@@ -111,7 +112,7 @@
+ 	$(INSTALL) -m 0644 master/DejaVuSans.ttf $(LIBDIR)/
  
  	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/master/www/munin-htaccess $(HTMLDIR)/.htaccess
 -	test -f "$(CONFDIR)/munin.conf"  || $(INSTALL) -m 0644 build/master/munin.conf $(CONFDIR)/
@@ -49,7 +72,7 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
  
  	$(INSTALL) -m 0755 build/master/_bin/munin-cron $(SBINDIR)/
  	$(INSTALL) -m 0755 build/master/_bin/munin-check $(LIBDIR)/
-@@ -121,14 +122,14 @@
+@@ -140,14 +141,14 @@
  install-plugins-prime: install-plugins build $(PLUGINS) Makefile Makefile.config
  	@$(CHECKGROUP)
  
@@ -60,14 +83,14 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
  	mkdir -p $(LIBDIR)/plugins
  	mkdir -p $(PLUGSTATE)
  
- 	$(CHOWN) $(PLUGINUSER):$(GROUP) $(PLUGSTATE)
- 	$(CHMOD) 0775 $(PLUGSTATE)
+ 	$(CHOWN) root:root $(PLUGSTATE)
+ 	$(CHMOD) 0755 $(PLUGSTATE)
 -	$(CHMOD) 0755 $(CONFDIR)/plugin-conf.d
 +	$(CHMOD) 0755 $(NCONFDIR)/plugin-conf.d
  
  	for p in build/plugins/node.d/* build/plugins/node.d.$(OSTYPE)/* ; do \
  	    if test -f "$$p" ; then                            \
-@@ -151,7 +152,7 @@
+@@ -184,7 +185,7 @@
  install-node-prime: install-node-pre install-node
  
  install-node-pre: build/node/munin-node.conf install-pre
@@ -76,7 +99,7 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
  
  
  install-common-prime: build-common install-common
-@@ -188,7 +189,8 @@
+@@ -220,7 +221,8 @@
  	@echo "$< -> $@"
  	@mkdir -p build/`dirname $<`
  	@sed -e 's|@@PREFIX@@|$(PREFIX)|g'                      \
@@ -86,9 +109,9 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
               -e 's|@@BINDIR@@|$(BINDIR)|g'                      \
               -e 's|@@SBINDIR@@|$(SBINDIR)|g'                    \
               -e 's|@@DOCDIR@@|$(DOCDIR)|g'                      \
-@@ -229,7 +231,8 @@
- 
+@@ -261,7 +263,8 @@
  common/blib/lib/Munin/Common/Defaults.pm: common/lib/Munin/Common/Defaults.pm build-common-pre
+ 	rm -f common/blib/lib/Munin/Common/Defaults.pm
  	$(PERL) -pe 's{(PREFIX     \s+=\s).*}{\1q{$(PREFIX)};}x;   \
 -                  s{(CONFDIR    \s+=\s).*}{\1q{$(CONFDIR)};}x;     \
 +                  s{(MCONFDIR    \s+=\s).*}{\1q{$(MCONFDIR)};}x;   \
@@ -96,7 +119,7 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
                    s{(BINDIR     \s+=\s).*}{\1q{$(BINDIR)};}x;      \
                    s{(SBINDIR    \s+=\s).*}{\1q{$(SBINDIR)};}x;     \
                    s{(DOCDIR     \s+=\s).*}{\1q{$(DOCDIR)};}x;      \
-@@ -373,7 +376,7 @@
+@@ -388,7 +391,7 @@
  	$(MAKE) $@ CONFIG=t/Makefile.config
  else
  test_plugins = id_default id_root env
@@ -105,7 +128,7 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
  	@for test in t/*.t; do \
  		echo -n "$$test: "; \
  		PERL5LIB=$(PERLLIB) $(PERL) $$test;\
-@@ -381,10 +384,10 @@
+@@ -396,10 +399,10 @@
  endif
  
  node-monkeywrench: install-node
@@ -118,9 +141,9 @@ diff -ur munin-1.4.0/Makefile munin-1.4.0.configs/Makefile
  	cp monkeywrench/plugin-break*_ $(LIBDIR)/plugins/
  	$(SBINDIR)/munin-node-configure --suggest
  	echo 'Done?'
-diff -ur munin-1.4.0/Makefile.config munin-1.4.0.configs/Makefile.config
---- munin-1.4.0/Makefile.config	2009-11-30 17:45:38.234724358 +0100
-+++ munin-1.4.0.configs/Makefile.config	2009-11-30 17:22:04.000000000 +0100
+diff -ur munin-2.0.17/Makefile.config munin-2.0.17-sep/Makefile.config
+--- munin-2.0.17/Makefile.config	2013-08-17 12:26:06.386624187 +0200
++++ munin-2.0.17-sep/Makefile.config	2013-08-17 12:19:22.386149494 +0200
 @@ -20,7 +20,8 @@
  PREFIX     = $(DESTDIR)/usr
  
@@ -131,22 +154,24 @@ diff -ur munin-1.4.0/Makefile.config munin-1.4.0.configs/Makefile.config
  
  # Server only - where to put munin-cron
  BINDIR     = $(PREFIX)/bin
-diff -ur munin-1.4.0/master/_bin/munin-cgi-graph.in munin-1.4.0.configs/master/_bin/munin-cgi-graph.in
---- munin-1.4.0/master/_bin/munin-cgi-graph.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-cgi-graph.in	2009-11-30 17:24:36.000000000 +0100
-@@ -32,7 +32,7 @@
- use IPC::SysV qw(IPC_CREAT);
+Only in munin-2.0.17: Makefile.config.orig
+Only in munin-2.0.17: Makefile.orig
+diff -ur munin-2.0.17/master/_bin/munin-cgi-graph.in munin-2.0.17-sep/master/_bin/munin-cgi-graph.in
+--- munin-2.0.17/master/_bin/munin-cgi-graph.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/_bin/munin-cgi-graph.in	2013-08-17 12:19:22.386149494 +0200
+@@ -44,7 +44,7 @@
+ use Log::Log4perl qw( :easy );
  
  my $GRAPHER = "$Munin::Common::Defaults::MUNIN_LIBDIR/munin-graph";
 -my $conffile = "$Munin::Common::Defaults::MUNIN_CONFDIR/munin.conf";
 +my $conffile = "$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.conf";
  
- my %TIMES   = ( "day"   => ["--noweek", "--nomonth", "--noyear", "--nosumweek", "--nosumyear"], 
- 		"week"  => ["--noday", "--nomonth", "--noyear", "--nosumweek", "--nosumyear"], 
-diff -ur munin-1.4.0/master/_bin/munin-check.in munin-1.4.0.configs/master/_bin/munin-check.in
---- munin-1.4.0/master/_bin/munin-check.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-check.in	2009-11-30 17:24:54.000000000 +0100
-@@ -166,7 +166,7 @@
+ my %period  = ( "day"   => 300,
+ 		"week"  => 1800,
+diff -ur munin-2.0.17/master/_bin/munin-check.in munin-2.0.17-sep/master/_bin/munin-check.in
+--- munin-2.0.17/master/_bin/munin-check.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/_bin/munin-check.in	2013-08-17 12:19:22.386149494 +0200
+@@ -163,7 +163,7 @@
  norec=yes owner_ok @@PLUGSTATE@@ @@PLUGINUSER@@
  norec=yes perm_ok @@PLUGSTATE@@ 775
  
@@ -155,120 +180,31 @@ diff -ur munin-1.4.0/master/_bin/munin-check.in munin-1.4.0.configs/master/_bin/
  
  echo "Check done.  Please note that this script only checks most things,"
  echo "not all things."
-diff -ur munin-1.4.0/master/_bin/munin-fastcgi-graph.in munin-1.4.0.configs/master/_bin/munin-fastcgi-graph.in
---- munin-1.4.0/master/_bin/munin-fastcgi-graph.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-fastcgi-graph.in	2009-11-30 17:25:36.000000000 +0100
-@@ -32,7 +32,7 @@
- use CGI::Fast;
+diff -ur munin-2.0.17/master/_bin/munin-graph.in munin-2.0.17-sep/master/_bin/munin-graph.in
+--- munin-2.0.17/master/_bin/munin-graph.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/_bin/munin-graph.in	2013-08-17 12:19:22.386149494 +0200
+@@ -51,7 +51,7 @@
+ use Log::Log4perl qw( :easy );
  
  my $GRAPHER = "$Munin::Common::Defaults::MUNIN_LIBDIR/munin-graph";
 -my $conffile = "$Munin::Common::Defaults::MUNIN_CONFDIR/munin.conf";
 +my $conffile = "$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.conf";
  
- my %TIMES   = ( "day"   => ["--noweek", "--nomonth", "--noyear", "--nosumweek", "--nosumyear"], 
- 		"week"  => ["--noday", "--nomonth", "--noyear", "--nosumweek", "--nosumyear"], 
-diff -ur munin-1.4.0/master/_bin/munin-gather.in munin-1.4.0.configs/master/_bin/munin-gather.in
---- munin-1.4.0/master/_bin/munin-gather.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-gather.in	2009-11-30 17:26:10.000000000 +0100
-@@ -40,7 +40,7 @@
- my $MDEBUG          = 0;
- my $VERSION        = "@@VERSION@@";
- my $serversocket   = "munin-server-socket.$$";
--my $conffile       = "@@CONFDIR@@/munin.conf";
-+my $conffile       = "@@MCONFDIR@@/munin.conf";
- my $force_root     = 0;
- my $do_usage       = 0;
- my @limit_hosts    = ();
-@@ -84,7 +84,7 @@
-     --host <host>	Limit graphed hosts to <host>. Multiple --host options
-     			may be supplied.
-     --config <file>	Use <file> as configuration file.
--    			[@@CONFDIR@@/munin.conf]
-+    			[@@MCONFDIR@@/munin.conf]
-     --log <level>       Set log level: DEBUG|INFO|WARN|ERROR|FATAL.
-                         These levels work the same way as in syslog.
-     --[no]debug		Send debug messages both to the log and to the screen
-@@ -827,13 +827,13 @@
-         my $tls_verify;
- 
-         $key = $cert = munin_get( $config, "tls_pem" );
--        $key = &munin_get( $config, "tls_private_key", "@@CONFDIR@@/munin.pem" )
-+        $key = &munin_get( $config, "tls_private_key", "@@MCONFDIR@@/munin.pem" )
-           unless defined $key;
-         $cert =
--          &munin_get( $config, "tls_certificate", "@@CONFDIR@@/munin.pem" )
-+          &munin_get( $config, "tls_certificate", "@@MCONFDIR@@/munin.pem" )
-           unless defined $cert;
-         $ca_cert =
--          &munin_get( $config, "tls_ca_certificate", "@@CONFDIR@@/cacert.pem" )
-+          &munin_get( $config, "tls_ca_certificate", "@@MCONFDIR@@/cacert.pem" )
-           unless defined $ca_cert;
-         $tls_verify = &munin_get( $config, "tls_verify_certificate", "no" );
-         $depth      = &munin_get( $config, "tls_verify_depth",       5 );
-@@ -919,7 +919,7 @@
+ my %period  = ( "day"   => 300,
+ 		"week"  => 1800,
+diff -ur munin-2.0.17/master/_bin/munin-limits.in munin-2.0.17-sep/master/_bin/munin-limits.in
+--- munin-2.0.17/master/_bin/munin-limits.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/_bin/munin-limits.in	2013-08-17 12:19:22.386149494 +0200
+@@ -66,7 +66,7 @@
  
  =item B<< --config <file> >>
  
 -Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin.conf]
 +Use E<lt>fileE<gt> as configuration file. [@@MCONFDIR@@/munin.conf]
  
- =item B<< --help >>
+ =item B<< --always-send <severity list> >>
  
-@@ -959,7 +959,7 @@
- 
- =head1 FILES
- 
--	@@CONFDIR@@/munin.conf
-+	@@MCONFDIR@@/munin.conf
- 	@@DBDIR@@/*
- 	@@LOGDIR@@/munin-update
- 	@@STATEDIR@@/*
-diff -ur munin-1.4.0/master/_bin/munin-graph.in munin-1.4.0.configs/master/_bin/munin-graph.in
---- munin-1.4.0/master/_bin/munin-graph.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-graph.in	2009-11-30 17:26:27.000000000 +0100
-@@ -92,7 +92,7 @@
- 
- =item B<< --config <file> >>
- 
--Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin.conf]
-+Use E<lt>fileE<gt> as configuration file. [@@MCONFDIR@@/munin.conf]
- 
- =item B<< --[no]list-images >>
- 
-@@ -135,7 +135,7 @@
- 
- =head1 FILES
- 
--	@@CONFDIR@@/munin.conf
-+	@@MCONFDIR@@/munin.conf
- 	@@DBDIR@@/*
- 	@@LOGDIR@@/munin-graph
- 	@@STATEDIR@@/*
-diff -ur munin-1.4.0/master/_bin/munin-html.in munin-1.4.0.configs/master/_bin/munin-html.in
---- munin-1.4.0/master/_bin/munin-html.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-html.in	2009-11-30 17:26:34.000000000 +0100
-@@ -90,7 +90,7 @@
- 
- =head1 FILES
- 
--	@@CONFDIR@@/munin.conf
-+	@@MCONFDIR@@/munin.conf
- 	@@DBDIR@@/datafile
- 	@@LOGDIR@@/munin-html
- 	@@HTMLDIR@@/*
-diff -ur munin-1.4.0/master/_bin/munin-limits.in munin-1.4.0.configs/master/_bin/munin-limits.in
---- munin-1.4.0/master/_bin/munin-limits.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-limits.in	2009-11-30 17:26:41.000000000 +0100
-@@ -64,7 +64,7 @@
- 
- =item B<< --config <file> >>
- 
--Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin.conf]
-+Use E<lt>fileE<gt> as configuration file. [@@MCONFDIR@@/munin.conf]
- 
- =item B<< --[no]force >>
- 
-@@ -100,7 +100,7 @@
+@@ -114,7 +114,7 @@
  
  =head1 FILES
  
@@ -277,10 +213,10 @@ diff -ur munin-1.4.0/master/_bin/munin-limits.in munin-1.4.0.configs/master/_bin
  	@@DBDIR@@/*
  	@@STATEDIR@@/*
  
-diff -ur munin-1.4.0/master/_bin/munin-update.in munin-1.4.0.configs/master/_bin/munin-update.in
---- munin-1.4.0/master/_bin/munin-update.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/_bin/munin-update.in	2009-11-30 17:26:56.000000000 +0100
-@@ -137,7 +137,7 @@
+diff -ur munin-2.0.17/master/_bin/munin-update.in munin-2.0.17-sep/master/_bin/munin-update.in
+--- munin-2.0.17/master/_bin/munin-update.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/_bin/munin-update.in	2013-08-17 12:19:22.386149494 +0200
+@@ -139,7 +139,7 @@
  
  =item B<< --config_file=<file> >>
  
@@ -289,7 +225,7 @@ diff -ur munin-1.4.0/master/_bin/munin-update.in munin-1.4.0.configs/master/_bin
  
  =item B<< --[no]debug >>
  
-@@ -190,7 +190,7 @@
+@@ -192,7 +192,7 @@
  
  =head1 FILES
  
@@ -298,10 +234,10 @@ diff -ur munin-1.4.0/master/_bin/munin-update.in munin-1.4.0.configs/master/_bin
  	@@DBDIR@@/*
  	@@LOGDIR@@/munin-update
  	@@STATEDIR@@/*
-diff -ur munin-1.4.0/master/doc/munin.conf.pod.in munin-1.4.0.configs/master/doc/munin.conf.pod.in
---- munin-1.4.0/master/doc/munin.conf.pod.in	2009-11-30 17:45:38.237723844 +0100
-+++ munin-1.4.0.configs/master/doc/munin.conf.pod.in	2009-11-30 17:31:11.000000000 +0100
-@@ -25,7 +25,7 @@
+diff -ur munin-2.0.17/master/doc/munin.conf.pod.in munin-2.0.17-sep/master/doc/munin.conf.pod.in
+--- munin-2.0.17/master/doc/munin.conf.pod.in	2013-08-17 12:26:06.386624187 +0200
++++ munin-2.0.17-sep/master/doc/munin.conf.pod.in	2013-08-17 12:19:22.386149494 +0200
+@@ -27,7 +27,7 @@
  	[machine1.your.dom]
  		address localhost
  
@@ -310,7 +246,7 @@ diff -ur munin-1.4.0/master/doc/munin.conf.pod.in munin-1.4.0.configs/master/doc
  If your placement deviates from this norm, use the "--config
  E<lt>fileE<gt>"-option when running the munin-* programs.
  
-@@ -153,20 +153,20 @@
+@@ -149,20 +149,20 @@
  =item B<tls_private_key> <value>
  
  This directive sets the location of the private key to be used for
@@ -334,10 +270,11 @@ diff -ur munin-1.4.0/master/doc/munin.conf.pod.in munin-1.4.0.configs/master/doc
  
  =item B<tls_verify_depth> <value>
  
-diff -ur munin-1.4.0/master/doc/munin-cron.pod.in munin-1.4.0.configs/master/doc/munin-cron.pod.in
---- munin-1.4.0/master/doc/munin-cron.pod.in	2009-11-27 12:17:16.000000000 +0100
-+++ munin-1.4.0.configs/master/doc/munin-cron.pod.in	2009-11-30 17:31:17.000000000 +0100
-@@ -20,7 +20,7 @@
+Only in munin-2.0.17/master/doc: munin.conf.pod.in.orig
+diff -ur munin-2.0.17/master/doc/munin-cron.pod.in munin-2.0.17-sep/master/doc/munin-cron.pod.in
+--- munin-2.0.17/master/doc/munin-cron.pod.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/doc/munin-cron.pod.in	2013-08-17 12:19:22.386149494 +0200
+@@ -22,7 +22,7 @@
  
  =item B<< --config <file> >>
  
@@ -346,9 +283,9 @@ diff -ur munin-1.4.0/master/doc/munin-cron.pod.in munin-1.4.0.configs/master/doc
  
  =back
  
-diff -ur munin-1.4.0/master/extras/munin-update_old.in munin-1.4.0.configs/master/extras/munin-update_old.in
---- munin-1.4.0/master/extras/munin-update_old.in	2009-11-27 12:17:17.000000000 +0100
-+++ munin-1.4.0.configs/master/extras/munin-update_old.in	2009-11-30 17:31:58.000000000 +0100
+diff -ur munin-2.0.17/master/extras/munin-update_old.in munin-2.0.17-sep/master/extras/munin-update_old.in
+--- munin-2.0.17/master/extras/munin-update_old.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/extras/munin-update_old.in	2013-08-17 12:19:22.386149494 +0200
 @@ -43,7 +43,7 @@
  my $STATS;
  my $cli_do_fork;
@@ -358,7 +295,7 @@ diff -ur munin-1.4.0/master/extras/munin-update_old.in munin-1.4.0.configs/maste
  my $config;
  my $do_fork = 1;
  my $serversocket  = "munin-server-socket.$$";
-@@ -161,7 +161,7 @@
+@@ -159,7 +159,7 @@
      --host <host>	Limit graphed hosts to <host>. Multiple --host options
      			may be supplied.
      --config <file>	Use <file> as configuration file. 
@@ -367,7 +304,7 @@ diff -ur munin-1.4.0/master/extras/munin-update_old.in munin-1.4.0.configs/maste
      --[no]debug		View debug messages. [--nodebug]
      --[no]fork		Don't fork one instance for each host. [--fork]
      --timeout=<seconds>	TCP timeout when talking to clients. [$timeout]
-@@ -754,11 +754,11 @@
+@@ -752,11 +752,11 @@
  	my $ca_cert;
  	my $tls_verify;
          $key = $cert = munin_get ($config, "tls_pem");
@@ -382,7 +319,7 @@ diff -ur munin-1.4.0/master/extras/munin-update_old.in munin-1.4.0.configs/maste
             unless defined $ca_cert;
          $tls_verify=&munin_get ($config, "tls_verify_certificate", "no");
          $depth=&munin_get ($config, "tls_verify_depth", 5);
-@@ -1090,7 +1090,7 @@
+@@ -1088,7 +1088,7 @@
  
  =item B<< --config <file> >>
  
@@ -391,7 +328,7 @@ diff -ur munin-1.4.0/master/extras/munin-update_old.in munin-1.4.0.configs/maste
  
  =item B<< --help >>
  
-@@ -1126,7 +1126,7 @@
+@@ -1124,7 +1124,7 @@
  
  =head1 FILES
  
@@ -400,9 +337,9 @@ diff -ur munin-1.4.0/master/extras/munin-update_old.in munin-1.4.0.configs/maste
  	@@DBDIR@@/*
  	@@LOGDIR@@/munin-update
  	@@STATEDIR@@/*
-diff -ur munin-1.4.0/master/lib/Munin/Master/Config.pm munin-1.4.0.configs/master/lib/Munin/Master/Config.pm
---- munin-1.4.0/master/lib/Munin/Master/Config.pm	2009-11-30 17:45:38.241724215 +0100
-+++ munin-1.4.0.configs/master/lib/Munin/Master/Config.pm	2009-11-30 17:28:11.000000000 +0100
+diff -ur munin-2.0.17/master/lib/Munin/Master/Config.pm munin-2.0.17-sep/master/lib/Munin/Master/Config.pm
+--- munin-2.0.17/master/lib/Munin/Master/Config.pm	2013-08-17 12:26:06.476625774 +0200
++++ munin-2.0.17-sep/master/lib/Munin/Master/Config.pm	2013-08-17 12:19:22.386149494 +0200
 @@ -139,7 +139,7 @@
  	    root_instance => 1, 
  
@@ -412,8 +349,8 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/Config.pm munin-1.4.0.configs/maste
  		dbdir            => $Munin::Common::Defaults::MUNIN_DBDIR,
  		debug            => 0,
  		fork             => 1,
-@@ -151,9 +151,9 @@
- 		rundir           => '/tmp',
+@@ -153,9 +153,9 @@
+ 		rundir           => $Munin::Common::Defaults::MUNIN_STATEDIR,
  		timeout          => 180,
  		tls              => 'disabled',
 -		tls_ca_certificate => "$Munin::Common::Defaults::MUNIN_CONFDIR/cacert.pem",
@@ -424,23 +361,24 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/Config.pm munin-1.4.0.configs/maste
 +		tls_private_key  => "$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.pem",
  		tls_verify_certificate => 0,
  		tls_verify_depth => 5,
- 		tmpldir          => $Munin::Common::Defaults::MUNIN_TEMPLATEDIR,
-diff -ur munin-1.4.0/master/lib/Munin/Master/GraphOld.pm munin-1.4.0.configs/master/lib/Munin/Master/GraphOld.pm
---- munin-1.4.0/master/lib/Munin/Master/GraphOld.pm	2009-11-27 12:17:17.000000000 +0100
-+++ munin-1.4.0.configs/master/lib/Munin/Master/GraphOld.pm	2009-11-30 17:28:20.000000000 +0100
-@@ -89,7 +89,7 @@
- my $skip_locking   = 0;
+ 		tmpldir          => "$Munin::Common::Defaults::MUNIN_TEMPLATEDIR",
+Only in munin-2.0.17/master/lib/Munin/Master: Config.pm.orig
+diff -ur munin-2.0.17/master/lib/Munin/Master/GraphOld.pm munin-2.0.17-sep/master/lib/Munin/Master/GraphOld.pm
+--- munin-2.0.17/master/lib/Munin/Master/GraphOld.pm	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/lib/Munin/Master/GraphOld.pm	2013-08-17 12:19:22.386149494 +0200
+@@ -90,7 +90,7 @@
  my $skip_stats     = 0;
  my $stdout         = 0;
+ my $force_run_as_root = 0;
 -my $conffile       = $Munin::Common::Defaults::MUNIN_CONFDIR . "/munin.conf";
 +my $conffile       = $Munin::Common::Defaults::MUNIN_MCONFDIR . "/munin.conf";
  my $libdir         = $Munin::Common::Defaults::MUNIN_LIBDIR;
- my %draw           = (
-     "day"     => 1,
-diff -ur munin-1.4.0/master/lib/Munin/Master/HTMLOld.pm munin-1.4.0.configs/master/lib/Munin/Master/HTMLOld.pm
---- munin-1.4.0/master/lib/Munin/Master/HTMLOld.pm	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/lib/Munin/Master/HTMLOld.pm	2009-11-30 17:30:13.000000000 +0100
-@@ -77,7 +77,7 @@
+ # Note: Nothing by default is more convenient and elliminates code while
+ # for cgi graphing - but it breaks how munin-graph expected stuff to work.
+diff -ur munin-2.0.17/master/lib/Munin/Master/HTMLOld.pm munin-2.0.17-sep/master/lib/Munin/Master/HTMLOld.pm
+--- munin-2.0.17/master/lib/Munin/Master/HTMLOld.pm	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/lib/Munin/Master/HTMLOld.pm	2013-08-17 12:19:22.389482886 +0200
+@@ -81,7 +81,7 @@
  my @times = ("day", "week", "month", "year");
  
  my $DEBUG      = 0;
@@ -449,16 +387,16 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/HTMLOld.pm munin-1.4.0.configs/mast
  my $do_usage   = 0;
  my $do_version = 0;
  my $stdout     = 0;
-@@ -1068,7 +1068,7 @@
-     --service <service>	Compatability. No effect.
-     --host <host>	Compatability. No effect.
+@@ -857,7 +857,7 @@
+     --service <service>	Compatibility. No effect.
+     --host <host>	Compatibility. No effect.
      --config <file>	Use <file> as configuration file. 
 -			[/etc/munin/munin.conf]
 +			[$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.conf]
  
  ";
      exit 0;
-@@ -1103,7 +1103,7 @@
+@@ -892,7 +892,7 @@
  
  =item B<< --config <file> >>
  
@@ -467,7 +405,7 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/HTMLOld.pm munin-1.4.0.configs/mast
  
  =item B<< --help >>
  
-@@ -1130,7 +1130,7 @@
+@@ -915,7 +915,7 @@
  
  =head1 FILES
  
@@ -476,10 +414,10 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/HTMLOld.pm munin-1.4.0.configs/mast
  	@@DBDIR@@/datafile
  	@@LOGDIR@@/munin-html
  	@@HTMLDIR@@/*
-diff -ur munin-1.4.0/master/lib/Munin/Master/LimitsOld.pm munin-1.4.0.configs/master/lib/Munin/Master/LimitsOld.pm
---- munin-1.4.0/master/lib/Munin/Master/LimitsOld.pm	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/master/lib/Munin/Master/LimitsOld.pm	2009-11-30 17:29:45.000000000 +0100
-@@ -53,7 +53,7 @@
+diff -ur munin-2.0.17/master/lib/Munin/Master/LimitsOld.pm munin-2.0.17-sep/master/lib/Munin/Master/LimitsOld.pm
+--- munin-2.0.17/master/lib/Munin/Master/LimitsOld.pm	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/lib/Munin/Master/LimitsOld.pm	2013-08-17 12:19:22.389482886 +0200
+@@ -52,7 +52,7 @@
  use Munin::Common::Defaults;
  
  my $DEBUG          = 0;
@@ -488,7 +426,7 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/LimitsOld.pm munin-1.4.0.configs/ma
  my $do_usage       = 0;
  my $do_version     = 0;
  my @limit_hosts    = ();
-@@ -199,7 +199,7 @@
+@@ -230,7 +230,7 @@
      --contact <contact>	Limit notified contacts to <contact>. Multiple 
      			--contact options may be supplied.
      --config <file>	Use <file> as configuration file. 
@@ -497,33 +435,48 @@ diff -ur munin-1.4.0/master/lib/Munin/Master/LimitsOld.pm munin-1.4.0.configs/ma
  
  ";
      exit 0;
-diff -ur munin-1.4.0/master/lib/Munin/Master/Utils.pm munin-1.4.0.configs/master/lib/Munin/Master/Utils.pm
---- munin-1.4.0/master/lib/Munin/Master/Utils.pm	2009-11-30 17:45:38.244724521 +0100
-+++ munin-1.4.0.configs/master/lib/Munin/Master/Utils.pm	2009-11-30 17:29:03.000000000 +0100
-@@ -78,7 +78,7 @@
- my $nsca = new IO::Handle;
- my $config = undef;
+Only in munin-2.0.17/master/lib/Munin/Master: Node.pm.orig
+diff -ur munin-2.0.17/master/lib/Munin/Master/Utils.pm munin-2.0.17-sep/master/lib/Munin/Master/Utils.pm
+--- munin-2.0.17/master/lib/Munin/Master/Utils.pm	2013-08-17 12:26:06.476625774 +0200
++++ munin-2.0.17-sep/master/lib/Munin/Master/Utils.pm	2013-08-17 12:19:22.389482886 +0200
+@@ -115,7 +115,7 @@
+ 	},
+ };
  
 -my $configfile="$Munin::Common::Defaults::MUNIN_CONFDIR/munin.conf";
 +my $configfile="$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.conf";
  
  # Fields to copy when "aliasing" a field
  my @COPY_FIELDS    = ("label", "draw", "type", "rrdfile", "fieldname", "info");
-diff -ur munin-1.4.0/master/munin.conf.in munin-1.4.0.configs/master/munin.conf.in
---- munin-1.4.0/master/munin.conf.in	2009-11-30 17:45:38.246730214 +0100
-+++ munin-1.4.0.configs/master/munin.conf.in	2009-11-30 17:38:23.000000000 +0100
-@@ -15,7 +15,7 @@
+Only in munin-2.0.17/master/lib/Munin/Master: Utils.pm.orig
+diff -ur munin-2.0.17/master/munin.conf.in munin-2.0.17-sep/master/munin.conf.in
+--- munin-2.0.17/master/munin.conf.in	2013-08-17 12:26:06.476625774 +0200
++++ munin-2.0.17-sep/master/munin.conf.in	2013-08-17 12:19:22.389482886 +0200
+@@ -24,7 +24,7 @@
+ # cgitmpdir @@DBDIR@@/cgi-tmp
  
  # (Exactly one) directory to include all files from.
- #
 -includedir @@CONFDIR@@/munin-conf.d
 +includedir @@MCONFDIR@@/munin-conf.d
  
- # Make graphs show values per minute instead of per second
- #graph_period minute
-diff -ur munin-1.4.0/master/www/munin-htaccess.in munin-1.4.0.configs/master/www/munin-htaccess.in
---- munin-1.4.0/master/www/munin-htaccess.in	2009-11-27 12:17:16.000000000 +0100
-+++ munin-1.4.0.configs/master/www/munin-htaccess.in	2009-11-30 17:37:25.000000000 +0100
+ # You can choose the time reference for "DERIVE" like graphs, and show
+ # "per minute", "per hour" values instead of the default "per second"
+Only in munin-2.0.17/master: munin.conf.in.orig
+diff -ur munin-2.0.17/master/t/munin_master_config.t munin-2.0.17-sep/master/t/munin_master_config.t
+--- munin-2.0.17/master/t/munin_master_config.t	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/t/munin_master_config.t	2013-08-17 12:23:31.933897977 +0200
+@@ -24,7 +24,7 @@
+     },
+ 
+     config => {
+-        config_file     => "$Munin::Common::Defaults::MUNIN_CONFDIR/munin.conf",
++        config_file     => "$Munin::Common::Defaults::MUNIN_MCONFDIR/munin.conf",
+         dbdir           => '/opt/munin/sandbox/var/opt/munin',
+         debug           => 0,
+         fork            => 1,
+diff -ur munin-2.0.17/master/www/munin-htaccess.in munin-2.0.17-sep/master/www/munin-htaccess.in
+--- munin-2.0.17/master/www/munin-htaccess.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/master/www/munin-htaccess.in	2013-08-17 12:19:22.389482886 +0200
 @@ -9,7 +9,7 @@
  # 
  # <directory @@HTMLDIR@@>
@@ -533,9 +486,9 @@ diff -ur munin-1.4.0/master/www/munin-htaccess.in munin-1.4.0.configs/master/www
  AuthName "Munin"
  AuthType Basic
  require valid-user
-diff -ur munin-1.4.0/node/bin/munindoc munin-1.4.0.configs/node/bin/munindoc
---- munin-1.4.0/node/bin/munindoc	2009-11-27 12:17:13.000000000 +0100
-+++ munin-1.4.0.configs/node/bin/munindoc	2009-11-30 17:41:00.000000000 +0100
+diff -ur munin-2.0.17/node/bin/munindoc munin-2.0.17-sep/node/bin/munindoc
+--- munin-2.0.17/node/bin/munindoc	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/bin/munindoc	2013-08-17 12:19:22.389482886 +0200
 @@ -48,7 +48,7 @@
  
  # Dirs in which to look for $plugin.pod and $plugin files.
@@ -545,9 +498,36 @@ diff -ur munin-1.4.0/node/bin/munindoc munin-1.4.0.configs/node/bin/munindoc
              "$Munin::Common::Defaults::MUNIN_PERLLIB");
  
  File::Find::find({wanted => \&wanted_pod}, @DIRS);
-diff -ur munin-1.4.0/node/extras/munin-node-simple.in munin-1.4.0.configs/node/extras/munin-node-simple.in
---- munin-1.4.0/node/extras/munin-node-simple.in	2009-11-27 12:17:13.000000000 +0100
-+++ munin-1.4.0.configs/node/extras/munin-node-simple.in	2009-11-30 17:41:11.000000000 +0100
+diff -ur munin-2.0.17/node/doc/munin-node.conf.pod munin-2.0.17-sep/node/doc/munin-node.conf.pod
+--- munin-2.0.17/node/doc/munin-node.conf.pod	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/doc/munin-node.conf.pod	2013-08-17 12:24:04.784478220 +0200
+@@ -91,20 +91,20 @@
+ =item B<tls_private_key> <value>
+ 
+ This directive sets the location of the private key to be used for
+-TLS.  Default is @@CONFDIR@@/munin-node.pem.  The private key and
++TLS.  Default is @@NCONFDIR@@/munin-node.pem.  The private key and
+ certificate can be stored in the same file.
+ 
+ =item B<tls_certificate> <value>
+ 
+ This directive sets the location of the TLS certificate to be used for
+-TLS.  Default is @@CONFDIR@@/munin-node.pem.  The private key and
++TLS.  Default is @@NCONFDIR@@/munin-node.pem.  The private key and
+ certificate can be stored in the same file.
+ 
+ =item B<tls_ca_certificate> <value>
+ 
+ This directive sets the CA certificate to be used to verify the node's
+ certificate, if tls_verify_certificate is set to C<yes>.  Default is
+-@@CONFDIR@@/cacert.pem.
++@@NCONFDIR@@/cacert.pem.
+ 
+ =item B<tls_verify_depth> <value>
+ 
+diff -ur munin-2.0.17/node/extras/munin-node-simple.in munin-2.0.17-sep/node/extras/munin-node-simple.in
+--- munin-2.0.17/node/extras/munin-node-simple.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/extras/munin-node-simple.in	2013-08-17 12:19:22.389482886 +0200
 @@ -28,8 +28,8 @@
  
  $| = 1;
@@ -559,22 +539,22 @@ diff -ur munin-1.4.0/node/extras/munin-node-simple.in munin-1.4.0.configs/node/e
  my $version   = "@@VERSION@@";
  
  # Empty environment
-diff -ur munin-1.4.0/node/lib/Munin/Node/Config.pm munin-1.4.0.configs/node/lib/Munin/Node/Config.pm
---- munin-1.4.0/node/lib/Munin/Node/Config.pm	2009-11-27 12:17:13.000000000 +0100
-+++ munin-1.4.0.configs/node/lib/Munin/Node/Config.pm	2009-11-30 17:40:38.000000000 +0100
+diff -ur munin-2.0.17/node/lib/Munin/Node/Config.pm munin-2.0.17-sep/node/lib/Munin/Node/Config.pm
+--- munin-2.0.17/node/lib/Munin/Node/Config.pm	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/lib/Munin/Node/Config.pm	2013-08-17 12:19:22.389482886 +0200
 @@ -25,7 +25,7 @@
          my ($class) = @_;
-         
+ 
          $instance ||= bless {
 -            config_file  => "$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf",
 +            config_file  => "$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf",
          }, $class;
  
          return $instance;
-diff -ur munin-1.4.0/node/lib/Munin/Node/Server.pm munin-1.4.0.configs/node/lib/Munin/Node/Server.pm
---- munin-1.4.0/node/lib/Munin/Node/Server.pm	2009-11-27 12:17:13.000000000 +0100
-+++ munin-1.4.0.configs/node/lib/Munin/Node/Server.pm	2009-11-30 17:36:02.000000000 +0100
-@@ -227,11 +227,11 @@
+diff -ur munin-2.0.17/node/lib/Munin/Node/Server.pm munin-2.0.17-sep/node/lib/Munin/Node/Server.pm
+--- munin-2.0.17/node/lib/Munin/Node/Server.pm	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/lib/Munin/Node/Server.pm	2013-08-17 12:19:22.389482886 +0200
+@@ -263,11 +263,11 @@
      my $mode = $session->{tls_mode};
  
      my $key        = $config->{tls_private_key}
@@ -587,34 +567,35 @@ diff -ur munin-1.4.0/node/lib/Munin/Node/Server.pm munin-1.4.0.configs/node/lib/
 -                  || "$Munin::Common::Defaults::MUNIN_CONFDIR/cacert.pem";
 +                  || "$Munin::Common::Defaults::MUNIN_NCONFDIR/cacert.pem";
      my $tls_verify = $config->{tls_verify_certificate}
-                   || 'no';
+                   || 0;
+     my $tls_match  = $config->{tls_match};
+diff -ur munin-2.0.17/node/lib/Munin/Node/Service.pm munin-2.0.17-sep/node/lib/Munin/Node/Service.pm
+--- munin-2.0.17/node/lib/Munin/Node/Service.pm	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/lib/Munin/Node/Service.pm	2013-08-17 12:24:22.264786886 +0200
+@@ -22,7 +22,7 @@
+     my ($class, %args) = @_;
  
-diff -ur munin-1.4.0/node/sbin/munin-node munin-1.4.0.configs/node/sbin/munin-node
---- munin-1.4.0/node/sbin/munin-node	2009-11-27 12:17:13.000000000 +0100
-+++ munin-1.4.0.configs/node/sbin/munin-node	2009-11-30 17:39:16.000000000 +0100
-@@ -33,9 +33,9 @@
- use Munin::Node::OS;
+     # Set defaults
+-    $args{servicedir} ||= "$Munin::Common::Defaults::MUNIN_CONFDIR/plugins";
++    $args{servicedir} ||= "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugins";
+ 
+     $args{defuser}  ||= getpwnam $Munin::Common::Defaults::MUNIN_PLUGINUSER;
+     $args{defgroup} ||= getgrnam $Munin::Common::Defaults::MUNIN_GROUP;
+diff -ur munin-2.0.17/node/sbin/munin-node munin-2.0.17-sep/node/sbin/munin-node
+--- munin-2.0.17/node/sbin/munin-node	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/sbin/munin-node	2013-08-17 12:19:22.389482886 +0200
+@@ -36,8 +36,8 @@
  use Munin::Node::Server;
  
--my $servicedir = "$Munin::Common::Defaults::MUNIN_CONFDIR/plugins";
--my $sconfdir   = "$Munin::Common::Defaults::MUNIN_CONFDIR/plugin-conf.d";
--my $conffile   = "$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf";
-+my $servicedir = "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugins";
-+my $sconfdir   = "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugin-conf.d";
-+my $conffile   = "$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf";
- my $FQDN       = "";
- my $DEBUG      = 0;
- my $PIDEBUG    = 0;
-@@ -143,7 +143,7 @@
- Options:
-     --help              View this message.
-     --config <file>     Use <file> as configuration file.
--                        [$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf]
-+                        [$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf]
-     --[no]paranoia      Only run plugins owned by root. Check permissions.
-                         [--noparanoia]
-     --debug             View debug messages
-@@ -180,7 +180,7 @@
+ my $servicedir;
+-my $sconfdir = "$Munin::Common::Defaults::MUNIN_CONFDIR/plugin-conf.d";
+-my $conffile = "$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf";
++my $sconfdir = "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugin-conf.d";
++my $conffile = "$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf";
+ my $DEBUG    = 0;
+ my $PIDEBUG  = 0;
+ my $paranoia = 0;
+@@ -164,7 +164,7 @@
  
  =item B<< --config <configfile> >>
  
@@ -623,7 +604,7 @@ diff -ur munin-1.4.0/node/sbin/munin-node munin-1.4.0.configs/node/sbin/munin-no
  
  =item B< --[no]paranoia >
  
-@@ -208,9 +208,9 @@
+@@ -187,9 +187,9 @@
  
  =head1 FILES
  
@@ -636,10 +617,10 @@ diff -ur munin-1.4.0/node/sbin/munin-node munin-1.4.0.configs/node/sbin/munin-no
      @@STATEDIR@@/munin-node.pid
      @@LOGDIR@@/munin-node.log
  
-diff -ur munin-1.4.0/node/sbin/munin-node-configure munin-1.4.0.configs/node/sbin/munin-node-configure
---- munin-1.4.0/node/sbin/munin-node-configure	2009-11-27 12:17:13.000000000 +0100
-+++ munin-1.4.0.configs/node/sbin/munin-node-configure	2009-11-30 17:34:09.000000000 +0100
-@@ -88,9 +88,9 @@
+diff -ur munin-2.0.17/node/sbin/munin-node-configure munin-2.0.17-sep/node/sbin/munin-node-configure
+--- munin-2.0.17/node/sbin/munin-node-configure	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/sbin/munin-node-configure	2013-08-17 12:19:22.489484658 +0200
+@@ -76,9 +76,9 @@
  
  sub parse_args
  {
@@ -651,23 +632,8 @@ diff -ur munin-1.4.0/node/sbin/munin-node-configure munin-1.4.0.configs/node/sbi
 +	my $sconfdir   = "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugin-conf.d";
  	my $libdir     = "$Munin::Common::Defaults::MUNIN_LIBDIR/plugins";
  
- 	my $debug;
-@@ -180,11 +180,11 @@
-                             printed on STDERR.
- 
-     --config <file>         Override configuration file
--                                [$Munin::Common::Defaults::MUNIN_CONFDIR/munin.conf]
-+                                [$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf]
-     --servicedir <dir>      Override plugin directory
--                                [$Munin::Common::Defaults::MUNIN_CONFDIR/plugins/]
-+                                [$Munin::Common::Defaults::MUNIN_NCONFDIR/plugins/]
-     --sconfdir <dir>        Override plugin configuration directory
--                                [$Munin::Common::Defaults::MUNIN_CONFDIR/plugin-conf.d]
-+                                [$Munin::Common::Defaults::MUNIN_NCONFDIR/plugin-conf.d]
-     --libdir <dir>          Override plugin lib
-                                 [$Munin::Common::Defaults::MUNIN_LIBDIR/plugins/]
- 
-@@ -520,15 +520,15 @@
+ 	my $debug = 0;
+@@ -492,15 +492,15 @@
  
  =item B<< --config <file> >>
  
@@ -676,8 +642,8 @@ diff -ur munin-1.4.0/node/sbin/munin-node-configure munin-1.4.0.configs/node/sbi
  
  =item B<< --servicedir <dir> >>
  
--Override plugin dir [@@CONFDIR@@/plugins/]
-+Override plugin dir [@@NCONFDIR@@/plugins/]
+-Override plugin directory [@@CONFDIR@@/plugins/]
++Override plugin directory [@@NCONFDIR@@/plugins/]
  
  =item B<< --sconfdir <dir> >>
  
@@ -686,7 +652,7 @@ diff -ur munin-1.4.0/node/sbin/munin-node-configure munin-1.4.0.configs/node/sbi
  
  =item B<< --libdir <dir> >>
  
-@@ -588,9 +588,9 @@
+@@ -648,9 +648,9 @@
  
  =head1 FILES
  
@@ -699,38 +665,28 @@ diff -ur munin-1.4.0/node/sbin/munin-node-configure munin-1.4.0.configs/node/sbi
      @@LIBDIR@@/plugins/plugins.history
      @@LIBDIR@@/plugins/*
  
-diff -ur munin-1.4.0/node/sbin/munin-run munin-1.4.0.configs/node/sbin/munin-run
---- munin-1.4.0/node/sbin/munin-run	2009-11-27 12:17:13.000000000 +0100
-+++ munin-1.4.0.configs/node/sbin/munin-run	2009-11-30 17:40:19.000000000 +0100
-@@ -102,9 +102,9 @@
+diff -ur munin-2.0.17/node/sbin/munin-run munin-2.0.17-sep/node/sbin/munin-run
+--- munin-2.0.17/node/sbin/munin-run	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/sbin/munin-run	2013-08-17 12:19:22.489484658 +0200
+@@ -35,7 +35,7 @@
+ 
+ my $services;
+ my $servicedir;
+-my $conffile = "$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf";
++my $conffile = "$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf";
+ my $DEBUG    = 0;
+ my $PIDEBUG  = 0;
+ my $paranoia = 0;
+@@ -98,7 +98,7 @@
  sub parse_args
  {
      # Default configuration values
--    my $servicedir = "$Munin::Common::Defaults::MUNIN_CONFDIR/plugins";
 -    my $sconfdir   = "$Munin::Common::Defaults::MUNIN_CONFDIR/plugin-conf.d";
--    my $conffile   = "$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf";
-+    my $servicedir = "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugins";
 +    my $sconfdir   = "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugin-conf.d";
-+    my $conffile   = "$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf";
      my $sconffile;
  
-     my ($DEBUG, $PIDEBUG) = (0, 0);
-@@ -186,11 +186,11 @@
- Options:
-     --help              View this message.
-     --config <file>     Use <file> as configuration file.
--                        [$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf]
-+                        [$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf]
-     --servicedir <dir>  Dir where plugins are found.
--                        [$Munin::Common::Defaults::MUNIN_CONFDIR/plugins]
-+                        [$Munin::Common::Defaults::MUNIN_NCONFDIR/plugins]
-     --sconfdir <dir>    Dir where plugin configurations are found.
--                        [$Munin::Common::Defaults::MUNIN_CONFDIR/plugin-conf.d]
-+                        [$Munin::Common::Defaults::MUNIN_NCONFDIR/plugin-conf.d]
-     --sconffile <file>  Use <file> as plugin configuration. Overrides sconfdir.
-                         [undefined]
-     --[no]paranoia      Only run plugins owned by root. Check permissions.
-@@ -226,15 +226,15 @@
+     my ($plugin, $arg);
+@@ -189,15 +189,15 @@
  
  =item B<< --config <configfile> >>
  
@@ -749,7 +705,7 @@ diff -ur munin-1.4.0/node/sbin/munin-run munin-1.4.0.configs/node/sbin/munin-run
  
  =item B<< --sconffile <file> >>
  
-@@ -273,9 +273,9 @@
+@@ -230,9 +230,9 @@
  
  =head1 FILES
  
@@ -762,9 +718,45 @@ diff -ur munin-1.4.0/node/sbin/munin-run munin-1.4.0.configs/node/sbin/munin-run
      @@STATEDIR@@/munin-node.pid
      @@LOGDIR@@/munin-node.log
  
-diff -ur munin-1.4.0/plugins/node.d/exim_mailqueue.in munin-1.4.0.configs/plugins/node.d/exim_mailqueue.in
---- munin-1.4.0/plugins/node.d/exim_mailqueue.in	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/exim_mailqueue.in	2009-11-30 17:42:09.000000000 +0100
+diff -ur munin-2.0.17/node/sbin/munin-sched munin-2.0.17-sep/node/sbin/munin-sched
+--- munin-2.0.17/node/sbin/munin-sched	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/node/sbin/munin-sched	2013-08-17 12:24:54.562023692 +0200
+@@ -34,8 +34,8 @@
+ use Munin::Node::ProxySpooler;
+ 
+ my $servicedir;
+-my $sconfdir = "$Munin::Common::Defaults::MUNIN_CONFDIR/plugin-conf.d";
+-my $conffile = "$Munin::Common::Defaults::MUNIN_CONFDIR/munin-node.conf";
++my $sconfdir = "$Munin::Common::Defaults::MUNIN_NCONFDIR/plugin-conf.d";
++my $conffile = "$Munin::Common::Defaults::MUNIN_NCONFDIR/munin-node.conf";
+ my $spooldir = $Munin::Common::Defaults::MUNIN_SPOOLDIR;
+ 
+ my ($host, $port);
+@@ -164,7 +164,7 @@
+ 
+ =item B<< --config <configfile> >>
+ 
+-Use E<lt>fileE<gt> as configuration file. [@@CONFDIR@@/munin-node.conf]
++Use E<lt>fileE<gt> as configuration file. [@@NCONFDIR@@/munin-node.conf]
+ 
+ =item B< --[no]paranoia >
+ 
+@@ -182,9 +182,9 @@
+ 
+ =head1 FILES
+ 
+-    @@CONFDIR@@/munin-node.conf
+-    @@CONFDIR@@/plugins/*
+-    @@CONFDIR@@/plugin-conf.d/*
++    @@NCONFDIR@@/munin-node.conf
++    @@NCONFDIR@@/plugins/*
++    @@NCONFDIR@@/plugin-conf.d/*
+     @@STATEDIR@@/munin-sched.pid
+     @@LOGDIR@@/munin-sched.log
+ 
+diff -ur munin-2.0.17/plugins/node.d/exim_mailqueue.in munin-2.0.17-sep/plugins/node.d/exim_mailqueue.in
+--- munin-2.0.17/plugins/node.d/exim_mailqueue.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/exim_mailqueue.in	2013-08-17 12:19:22.489484658 +0200
 @@ -15,7 +15,7 @@
    [exim_*]
      user exim
@@ -774,9 +766,9 @@ diff -ur munin-1.4.0/plugins/node.d/exim_mailqueue.in munin-1.4.0.configs/plugin
  if you need to override the defaults below:
  
    [exim_mailqueue]
-diff -ur munin-1.4.0/plugins/node.d/ipmi_sensor_.in munin-1.4.0.configs/plugins/node.d/ipmi_sensor_.in
---- munin-1.4.0/plugins/node.d/ipmi_sensor_.in	2009-11-27 12:17:11.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/ipmi_sensor_.in	2009-11-30 17:42:27.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d/ipmi_sensor_.in munin-2.0.17-sep/plugins/node.d/ipmi_sensor_.in
+--- munin-2.0.17/plugins/node.d/ipmi_sensor_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/ipmi_sensor_.in	2013-08-17 12:19:22.489484658 +0200
 @@ -17,7 +17,7 @@
  ipmitool probably needs to be run as root, and it may take more than
  10 seconds on some hosts.
@@ -786,7 +778,7 @@ diff -ur munin-1.4.0/plugins/node.d/ipmi_sensor_.in munin-1.4.0.configs/plugins/
  
   [ipmi_sensor_*]
    user root
-@@ -50,7 +50,7 @@
+@@ -49,7 +49,7 @@
  
  =head1 BUGS
  
@@ -795,8 +787,8 @@ diff -ur munin-1.4.0/plugins/node.d/ipmi_sensor_.in munin-1.4.0.configs/plugins/
  variables.
  
  =head1 MAGIC MARKERS
-@@ -73,7 +73,7 @@
- CACHEDIR = "@@PLUGSTATE@@"
+@@ -72,7 +72,7 @@
+ CACHEDIR = os.environ['MUNIN_PLUGSTATE']
  CACHEFILE = "plugin-ipmi_sensor.cache"
  CACHEAGE = 120
 -CONFIG = '@@CONFDIR@@/ipmi'
@@ -804,9 +796,9 @@ diff -ur munin-1.4.0/plugins/node.d/ipmi_sensor_.in munin-1.4.0.configs/plugins/
  
  
  
-diff -ur munin-1.4.0/plugins/node.d/mysql_innodb.in munin-1.4.0.configs/plugins/node.d/mysql_innodb.in
---- munin-1.4.0/plugins/node.d/mysql_innodb.in	2009-11-27 12:17:11.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/mysql_innodb.in	2009-11-30 17:42:53.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d/mysql_innodb.in munin-2.0.17-sep/plugins/node.d/mysql_innodb.in
+--- munin-2.0.17/plugins/node.d/mysql_innodb.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/mysql_innodb.in	2013-08-17 12:19:22.489484658 +0200
 @@ -34,7 +34,7 @@
  
  =head1 CONFIGURATION
@@ -816,10 +808,10 @@ diff -ur munin-1.4.0/plugins/node.d/mysql_innodb.in munin-1.4.0.configs/plugins/
  if you need to override the defaults below:
  
   [mysql_innodb]
-diff -ur munin-1.4.0/plugins/node.d/mysql_isam_space_.in munin-1.4.0.configs/plugins/node.d/mysql_isam_space_.in
---- munin-1.4.0/plugins/node.d/mysql_isam_space_.in	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/mysql_isam_space_.in	2009-11-30 17:41:30.000000000 +0100
-@@ -11,7 +11,7 @@
+diff -ur munin-2.0.17/plugins/node.d/mysql_isam_space_.in munin-2.0.17-sep/plugins/node.d/mysql_isam_space_.in
+--- munin-2.0.17/plugins/node.d/mysql_isam_space_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/mysql_isam_space_.in	2013-08-17 12:19:22.489484658 +0200
+@@ -8,7 +8,7 @@
  
  =head1 CONFIGURATION
  
@@ -828,9 +820,9 @@ diff -ur munin-1.4.0/plugins/node.d/mysql_isam_space_.in munin-1.4.0.configs/plu
  if you need to override the defaults below:
  
   [mysql_isam_space_*]
-diff -ur munin-1.4.0/plugins/node.d/mysql_threads.in munin-1.4.0.configs/plugins/node.d/mysql_threads.in
---- munin-1.4.0/plugins/node.d/mysql_threads.in	2009-11-30 17:45:38.180724509 +0100
-+++ munin-1.4.0.configs/plugins/node.d/mysql_threads.in	2009-11-30 17:43:19.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d/mysql_threads.in munin-2.0.17-sep/plugins/node.d/mysql_threads.in
+--- munin-2.0.17/plugins/node.d/mysql_threads.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/mysql_threads.in	2013-08-17 12:19:22.489484658 +0200
 @@ -9,7 +9,7 @@
  
  =head1 CONFIGURATION
@@ -840,9 +832,9 @@ diff -ur munin-1.4.0/plugins/node.d/mysql_threads.in munin-1.4.0.configs/plugins
  need to override the defaults below:
  
   [mysql_threads]
-diff -ur munin-1.4.0/plugins/node.d/named.in munin-1.4.0.configs/plugins/node.d/named.in
---- munin-1.4.0/plugins/node.d/named.in	2009-11-27 12:17:11.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/named.in	2009-11-30 17:43:03.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d/named.in munin-2.0.17-sep/plugins/node.d/named.in
+--- munin-2.0.17/plugins/node.d/named.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/named.in	2013-08-17 12:19:22.489484658 +0200
 @@ -34,7 +34,7 @@
  
  =head1 CONFIGURATION
@@ -852,9 +844,9 @@ diff -ur munin-1.4.0/plugins/node.d/named.in munin-1.4.0.configs/plugins/node.d/
  if you need to override the defaults below:
  
   [named]
-diff -ur munin-1.4.0/plugins/node.d/ntp_kernel_pll_freq.in munin-1.4.0.configs/plugins/node.d/ntp_kernel_pll_freq.in
---- munin-1.4.0/plugins/node.d/ntp_kernel_pll_freq.in	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/ntp_kernel_pll_freq.in	2009-11-30 17:41:46.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d/ntp_kernel_pll_freq.in munin-2.0.17-sep/plugins/node.d/ntp_kernel_pll_freq.in
+--- munin-2.0.17/plugins/node.d/ntp_kernel_pll_freq.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/ntp_kernel_pll_freq.in	2013-08-17 12:19:22.489484658 +0200
 @@ -12,7 +12,7 @@
  
  No configuration
@@ -875,9 +867,9 @@ diff -ur munin-1.4.0/plugins/node.d/ntp_kernel_pll_freq.in munin-1.4.0.configs/p
  else
      fcomp=0
  fi
-diff -ur munin-1.4.0/plugins/node.d/postfix_mailstats.in munin-1.4.0.configs/plugins/node.d/postfix_mailstats.in
---- munin-1.4.0/plugins/node.d/postfix_mailstats.in	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/postfix_mailstats.in	2009-11-30 17:42:45.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d/postfix_mailstats.in munin-2.0.17-sep/plugins/node.d/postfix_mailstats.in
+--- munin-2.0.17/plugins/node.d/postfix_mailstats.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/postfix_mailstats.in	2013-08-17 12:19:22.489484658 +0200
 @@ -8,7 +8,7 @@
  
  =head1 CONFIGURATION
@@ -887,9 +879,9 @@ diff -ur munin-1.4.0/plugins/node.d/postfix_mailstats.in munin-1.4.0.configs/plu
  if you need to override the defaults below:
  
   [postfix_mailstats]
-diff -ur munin-1.4.0/plugins/node.d/psu_.in munin-1.4.0.configs/plugins/node.d/psu_.in
---- munin-1.4.0/plugins/node.d/psu_.in	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/psu_.in	2009-11-30 17:42:37.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d/psu_.in munin-2.0.17-sep/plugins/node.d/psu_.in
+--- munin-2.0.17/plugins/node.d/psu_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/psu_.in	2013-08-17 12:19:22.489484658 +0200
 @@ -15,7 +15,7 @@
  
  Example:
@@ -899,21 +891,21 @@ diff -ur munin-1.4.0/plugins/node.d/psu_.in munin-1.4.0.configs/plugins/node.d/p
  
  ...will monitor the user "foo"
  
-diff -ur munin-1.4.0/plugins/node.d/squeezebox_.in munin-1.4.0.configs/plugins/node.d/squeezebox_.in
---- munin-1.4.0/plugins/node.d/squeezebox_.in	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/squeezebox_.in	2009-11-30 17:43:10.000000000 +0100
-@@ -19,7 +19,7 @@
+diff -ur munin-2.0.17/plugins/node.d/squeezebox_.in munin-2.0.17-sep/plugins/node.d/squeezebox_.in
+--- munin-2.0.17/plugins/node.d/squeezebox_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/squeezebox_.in	2013-08-17 12:19:22.489484658 +0200
+@@ -20,7 +20,7 @@
  non-default configuration, please use the environment variables
  'squeezebox_host' and 'squeezebox_port' to connect. Also, if your
- netcat(1) binary is anywhere else than /bin/nc please define it in the
--plugin's environment file (@@CONFDIR@@/squeezebox or
-+plugin's environment file (@@NCONFDIR@@/squeezebox or
- similar). Sample follows:
+ nc(1) binary is not called "nc", or not the one in $PATH, please define it
+-in the plugin's environment file (@@CONFDIR@@/squeezebox or similar).
++in the plugin's environment file (@@NCONFDIR@@/squeezebox or similar).
  
-  [squeezebox_*]
-diff -ur munin-1.4.0/plugins/node.d/varnish_.in munin-1.4.0.configs/plugins/node.d/varnish_.in
---- munin-1.4.0/plugins/node.d/varnish_.in	2009-11-27 12:17:10.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d/varnish_.in	2009-11-30 17:41:59.000000000 +0100
+ Sample follows:
+ 
+diff -ur munin-2.0.17/plugins/node.d/varnish_.in munin-2.0.17-sep/plugins/node.d/varnish_.in
+--- munin-2.0.17/plugins/node.d/varnish_.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d/varnish_.in	2013-08-17 12:19:22.492818051 +0200
 @@ -54,7 +54,7 @@
  You can link them yourself with something like this:
  
@@ -921,11 +913,47 @@ diff -ur munin-1.4.0/plugins/node.d/varnish_.in munin-1.4.0.configs/plugins/node
 -    @@CONFDIR@@/plugins/varnish_data_structures
 +    @@NCONFDIR@@/plugins/varnish_data_structures
  
- =head1 INTERPERTATION
+ =head1 INTERPRETATION
  
-diff -ur munin-1.4.0/plugins/node.d.linux/acpi.in munin-1.4.0.configs/plugins/node.d.linux/acpi.in
---- munin-1.4.0/plugins/node.d.linux/acpi.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/acpi.in	2009-11-30 17:43:46.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d.cygwin/df.in munin-2.0.17-sep/plugins/node.d.cygwin/df.in
+--- munin-2.0.17/plugins/node.d.cygwin/df.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.cygwin/df.in	2013-08-17 12:25:08.005594281 +0200
+@@ -13,7 +13,7 @@
+ 
+ =head1 USAGE
+ 
+-Link this plugin to @@CONFDIR@@/plugins/ and restart the munin-node.
++Link this plugin to @@NCONFDIR@@/plugins/ and restart the munin-node.
+ 
+ The plugin excludes per default the following special, read-only or
+ dynamically allocating file systems from graphing:
+diff -ur munin-2.0.17/plugins/node.d.debug/if.in munin-2.0.17-sep/plugins/node.d.debug/if.in
+--- munin-2.0.17/plugins/node.d.debug/if.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.debug/if.in	2013-08-17 12:25:17.379093018 +0200
+@@ -21,7 +21,7 @@
+ 
+ =head1 USAGE
+ 
+-Link this plugin to @@CONFDIR@@/plugins/ and restart the munin-node.
++Link this plugin to @@NCONFDIR@@/plugins/ and restart the munin-node.
+ 
+ =head1 MAGIC MARKERS
+ 
+diff -ur munin-2.0.17/plugins/node.d.debug/tc.in munin-2.0.17-sep/plugins/node.d.debug/tc.in
+--- munin-2.0.17/plugins/node.d.debug/tc.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.debug/tc.in	2013-08-17 12:25:26.375918427 +0200
+@@ -21,7 +21,7 @@
+ 
+ =head1 USAGE
+ 
+-Link this plugin to @@CONFDIR@@/plugins/ and restart the munin-node.
++Link this plugin to @@NCONFDIR@@/plugins/ and restart the munin-node.
+ 
+ =head1 MAGIC MARKERS
+ 
+diff -ur munin-2.0.17/plugins/node.d.linux/acpi.in munin-2.0.17-sep/plugins/node.d.linux/acpi.in
+--- munin-2.0.17/plugins/node.d.linux/acpi.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/acpi.in	2013-08-17 12:19:22.492818051 +0200
 @@ -17,7 +17,7 @@
  
  =head1 USAGE
@@ -935,9 +963,9 @@ diff -ur munin-1.4.0/plugins/node.d.linux/acpi.in munin-1.4.0.configs/plugins/no
  
  =head1 INTERPRETATION
  
-diff -ur munin-1.4.0/plugins/node.d.linux/apt.in munin-1.4.0.configs/plugins/node.d.linux/apt.in
---- munin-1.4.0/plugins/node.d.linux/apt.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/apt.in	2009-11-30 17:44:34.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d.linux/apt.in munin-2.0.17-sep/plugins/node.d.linux/apt.in
+--- munin-2.0.17/plugins/node.d.linux/apt.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/apt.in	2013-08-17 12:19:22.492818051 +0200
 @@ -38,7 +38,7 @@
  
  =head1 USAGE
@@ -945,12 +973,12 @@ diff -ur munin-1.4.0/plugins/node.d.linux/apt.in munin-1.4.0.configs/plugins/nod
 -Link this plugin in @@CONFDIR@@/plugins/ and restart the munin-node.
 +Link this plugin in @@NCONFDIR@@/plugins/ and restart the munin-node.
  
- =head1 MAGIC MARKERS
+ =head1 NOTES
  
-diff -ur munin-1.4.0/plugins/node.d.linux/df.in munin-1.4.0.configs/plugins/node.d.linux/df.in
---- munin-1.4.0/plugins/node.d.linux/df.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/df.in	2009-11-30 17:44:11.000000000 +0100
-@@ -28,16 +28,16 @@
+diff -ur munin-2.0.17/plugins/node.d.linux/df.in munin-2.0.17-sep/plugins/node.d.linux/df.in
+--- munin-2.0.17/plugins/node.d.linux/df.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/df.in	2013-08-17 12:19:22.492818051 +0200
+@@ -28,7 +28,7 @@
      env.warning 92
      env.critical 98
  
@@ -959,43 +987,63 @@ diff -ur munin-1.4.0/plugins/node.d.linux/df.in munin-1.4.0.configs/plugins/node
  
  You may specify filesystem specific warning and critical levels:
  
-     env._dev_sda2_warning 98
-     env._dev_sda2_critical 99
+@@ -55,7 +55,7 @@
  
- =head1 USAGE 
+ =head1 USAGE
  
 -Link this plugin to @@CONFDIR@@/plugins/ and restart the munin-node.
 +Link this plugin to @@NCONFDIR@@/plugins/ and restart the munin-node.
  
  =head1 MAGIC MARKERS
  
-diff -ur munin-1.4.0/plugins/node.d.linux/fw_conntrack.in munin-1.4.0.configs/plugins/node.d.linux/fw_conntrack.in
---- munin-1.4.0/plugins/node.d.linux/fw_conntrack.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/fw_conntrack.in	2009-11-30 17:44:18.000000000 +0100
-@@ -14,7 +14,7 @@
+diff -ur munin-2.0.17/plugins/node.d.linux/df_inode.in munin-2.0.17-sep/plugins/node.d.linux/df_inode.in
+--- munin-2.0.17/plugins/node.d.linux/df_inode.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/df_inode.in	2013-08-17 12:25:37.609449943 +0200
+@@ -28,7 +28,7 @@
+     env.warning 92
+     env.critical 98
+ 
+-Put it in a file in @@CONFDIR@@/plugin-conf.d/ and restart the munin-node.
++Put it in a file in @@NCONFDIR@@/plugin-conf.d/ and restart the munin-node.
+ 
+ You may specify filesystem specific warning and critical levels:
+ 
+@@ -55,7 +55,7 @@
+ 
+ =head1 USAGE
+ 
+-Link this plugin to @@CONFDIR@@/plugins/ and restart the munin-node.
++Link this plugin to @@NCONFDIR@@/plugins/ and restart the munin-node.
+ 
+ =head1 MAGIC MARKERS
+ 
+diff -ur munin-2.0.17/plugins/node.d.linux/fw_conntrack.in munin-2.0.17-sep/plugins/node.d.linux/fw_conntrack.in
+--- munin-2.0.17/plugins/node.d.linux/fw_conntrack.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/fw_conntrack.in	2013-08-17 12:19:22.492818051 +0200
+@@ -11,7 +11,7 @@
  
  =head2 CONFIGURATION EXAMPLE
  
 -@@CONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
 +@@NCONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
  
-  [fw*]
+  [fw_*]
    user root
-diff -ur munin-1.4.0/plugins/node.d.linux/fw_forwarded_local.in munin-1.4.0.configs/plugins/node.d.linux/fw_forwarded_local.in
---- munin-1.4.0/plugins/node.d.linux/fw_forwarded_local.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/fw_forwarded_local.in	2009-11-30 17:43:36.000000000 +0100
-@@ -13,7 +13,7 @@
+diff -ur munin-2.0.17/plugins/node.d.linux/fw_forwarded_local.in munin-2.0.17-sep/plugins/node.d.linux/fw_forwarded_local.in
+--- munin-2.0.17/plugins/node.d.linux/fw_forwarded_local.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/fw_forwarded_local.in	2013-08-17 12:19:22.492818051 +0200
+@@ -10,7 +10,7 @@
  
- =head1 CONFIGURATION EXAMPLE
+ =head2 CONFIGURATION EXAMPLE
  
 -@@CONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
 +@@NCONFDIR@@/plugin-conf.d/global or other file in that dir must contain:
  
-  [fw*]
+  [fw_*]
    user root
-diff -ur munin-1.4.0/plugins/node.d.linux/fw_packets.in munin-1.4.0.configs/plugins/node.d.linux/fw_packets.in
---- munin-1.4.0/plugins/node.d.linux/fw_packets.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/fw_packets.in	2009-11-30 17:43:55.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d.linux/fw_packets.in munin-2.0.17-sep/plugins/node.d.linux/fw_packets.in
+--- munin-2.0.17/plugins/node.d.linux/fw_packets.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/fw_packets.in	2013-08-17 12:19:22.492818051 +0200
 @@ -11,7 +11,7 @@
  
  =head1 CONFIGURATION EXAMPLE
@@ -1005,9 +1053,9 @@ diff -ur munin-1.4.0/plugins/node.d.linux/fw_packets.in munin-1.4.0.configs/plug
  
   [fw*]
    user root
-diff -ur munin-1.4.0/plugins/node.d.linux/iostat.in munin-1.4.0.configs/plugins/node.d.linux/iostat.in
---- munin-1.4.0/plugins/node.d.linux/iostat.in	2009-11-30 17:45:38.201723751 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/iostat.in	2009-11-30 17:44:41.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d.linux/iostat.in munin-2.0.17-sep/plugins/node.d.linux/iostat.in
+--- munin-2.0.17/plugins/node.d.linux/iostat.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/iostat.in	2013-08-17 12:19:22.492818051 +0200
 @@ -24,7 +24,7 @@
  
  =head1 USAGE
@@ -1017,9 +1065,9 @@ diff -ur munin-1.4.0/plugins/node.d.linux/iostat.in munin-1.4.0.configs/plugins/
  
  =head1 INTERPRETATION
  
-diff -ur munin-1.4.0/plugins/node.d.linux/iostat_ios.in munin-1.4.0.configs/plugins/node.d.linux/iostat_ios.in
---- munin-1.4.0/plugins/node.d.linux/iostat_ios.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/iostat_ios.in	2009-11-30 17:44:26.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d.linux/iostat_ios.in munin-2.0.17-sep/plugins/node.d.linux/iostat_ios.in
+--- munin-2.0.17/plugins/node.d.linux/iostat_ios.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/iostat_ios.in	2013-08-17 12:19:22.492818051 +0200
 @@ -15,7 +15,7 @@
  
  =head1 USAGE
@@ -1029,9 +1077,9 @@ diff -ur munin-1.4.0/plugins/node.d.linux/iostat_ios.in munin-1.4.0.configs/plug
  
  =head1 INTERPRETATION
  
-diff -ur munin-1.4.0/plugins/node.d.linux/irqstats.in munin-1.4.0.configs/plugins/node.d.linux/irqstats.in
---- munin-1.4.0/plugins/node.d.linux/irqstats.in	2009-11-27 12:17:05.000000000 +0100
-+++ munin-1.4.0.configs/plugins/node.d.linux/irqstats.in	2009-11-30 17:44:02.000000000 +0100
+diff -ur munin-2.0.17/plugins/node.d.linux/irqstats.in munin-2.0.17-sep/plugins/node.d.linux/irqstats.in
+--- munin-2.0.17/plugins/node.d.linux/irqstats.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/plugins/node.d.linux/irqstats.in	2013-08-17 12:19:22.492818051 +0200
 @@ -15,7 +15,7 @@
  
  =head1 USAGE
@@ -1041,9 +1089,9 @@ diff -ur munin-1.4.0/plugins/node.d.linux/irqstats.in munin-1.4.0.configs/plugin
  
  =head1 INTERPRETATION
  
-diff -ur munin-1.4.0/resources/hpux-init.d_munin-node.in munin-1.4.0.configs/resources/hpux-init.d_munin-node.in
---- munin-1.4.0/resources/hpux-init.d_munin-node.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/resources/hpux-init.d_munin-node.in	2009-11-30 17:45:11.000000000 +0100
+diff -ur munin-2.0.17/resources/hpux-init.d_munin-node.in munin-2.0.17-sep/resources/hpux-init.d_munin-node.in
+--- munin-2.0.17/resources/hpux-init.d_munin-node.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/resources/hpux-init.d_munin-node.in	2013-08-17 12:19:22.492818051 +0200
 @@ -6,7 +6,7 @@
  PATH=/sbin:/bin:/usr/sbin:/usr/bin
  NAME=munin-node
@@ -1053,9 +1101,9 @@ diff -ur munin-1.4.0/resources/hpux-init.d_munin-node.in munin-1.4.0.configs/res
  RUN_AS=$(awk '$1~/user/{print$2}' $CONFFILE)
  PIDFILE=$(awk '$1~/pid/{print$2}' $CONFFILE)
  MYCONF=/etc/rc.config.d/muninconf
-diff -ur munin-1.4.0/resources/linux-cron.d_munin-node.in munin-1.4.0.configs/resources/linux-cron.d_munin-node.in
---- munin-1.4.0/resources/linux-cron.d_munin-node.in	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/resources/linux-cron.d_munin-node.in	2009-11-30 17:45:01.000000000 +0100
+diff -ur munin-2.0.17/resources/linux-cron.d_munin-node.in munin-2.0.17-sep/resources/linux-cron.d_munin-node.in
+--- munin-2.0.17/resources/linux-cron.d_munin-node.in	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/resources/linux-cron.d_munin-node.in	2013-08-17 12:19:22.492818051 +0200
 @@ -8,5 +8,5 @@
  # an hour (12 invokations an hour, 1 in 12 chance that the update will
  # happen), but ensure that there will never be more than two hour (7200
@@ -1063,9 +1111,9 @@ diff -ur munin-1.4.0/resources/linux-cron.d_munin-node.in munin-1.4.0.configs/re
 -*/5 * * * *	root [ -x @@CONFDIR@@/plugins/apt ] && @@CONFDIR@@/plugins/apt update 7200 12 >/dev/null
 +*/5 * * * *	root [ -x @@NCONFDIR@@/plugins/apt ] && @@NCONFDIR@@/plugins/apt update 7200 12 >/dev/null
  
-diff -ur munin-1.4.0/t/Makefile.config munin-1.4.0.configs/t/Makefile.config
---- munin-1.4.0/t/Makefile.config	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0.configs/t/Makefile.config	2009-11-30 17:45:21.000000000 +0100
+diff -ur munin-2.0.17/t/Makefile.config munin-2.0.17-sep/t/Makefile.config
+--- munin-2.0.17/t/Makefile.config	2013-07-19 18:30:03.000000000 +0200
++++ munin-2.0.17-sep/t/Makefile.config	2013-08-17 12:19:22.492818051 +0200
 @@ -9,7 +9,8 @@
  PREFIX     = $(PWD)/t/install
  
