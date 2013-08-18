@@ -1,0 +1,13 @@
+[Unit]
+Description=Munin Async Server
+Documentation=man:munin-node
+Requires=munin-node.service
+After=network.target munin-node.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/munin-asyncd
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

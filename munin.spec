@@ -10,7 +10,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	2.0.17
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/WWW
 Source0:	http://downloads.sourceforge.net/munin/%{name}-%{version}.tar.gz
@@ -24,6 +24,8 @@ Source6:	%{name}-lighttpd.conf
 Source7:	%{name}.tmpfiles
 Source8:	%{name}-httpd.conf
 Source9:	%{name}-node.service
+Source10:	%{name}-asyncd.service
+Source11:	%{name}-asyncd.init
 Patch0:		%{name}-Makefile.patch
 Patch1:		%{name}-plugins.patch
 Patch2:		%{name}-templatedir.patch
@@ -142,6 +144,10 @@ install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_s
 	CHOWN=/bin/true \
 	DESTDIR=$RPM_BUILD_ROOT
 
+# move asyncd daemon do sbin
+%{__mv} $RPM_BUILD_ROOT{%{_datadir}/munin,%{_sbindir}}/munin-asyncd
+
+install %{SOURCE11} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-asyncd
 install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
 install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
@@ -154,6 +160,7 @@ install %{SOURCE6} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/lighttpd.conf
 install %{SOURCE7} $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/%{name}.conf
 
 install %{SOURCE9} $RPM_BUILD_ROOT%{systemdunitdir}/munin-node.service
+install %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/munin-asyncd.service
 
 install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
@@ -213,23 +220,29 @@ done
 %post node
 if [ "$1" = "1" ] ; then
 	/sbin/chkconfig --add munin-node
+	/sbin/chkconfig --add munin-asyncd
 	%{_sbindir}/munin-node-configure --shell | sh
 fi
 %service munin-node restart "Munin Node agent"
-%systemd_post munin-node.service
+%service munin-asyncd restart "Munin Asyncd agent"
+%systemd_post munin-node.service munin-asyncd.service
 
 %preun node
 if [ "$1" = "0" ] ; then
+	%service munin-asyncd stop
 	%service munin-node stop
 	/sbin/chkconfig --del munin-node
+	/sbin/chkconfig --del munin-asyncd
 fi
-%systemd_preun munin-node.service
+%systemd_preun munin-node.service munin-asyncd.service
 
 %postun node
 %systemd_reload
 
-%triggerpostun node -- munin-node < 2.0.17-1
+%triggerpostun node -- munin-node < 2.0.17-2
 %systemd_trigger munin-node.service
+%systemd_service_enable munin-asyncd.service
+/sbin/chkconfig --add munin-asyncd
 
 %pre common
 %groupadd -g 158 munin
@@ -314,9 +327,12 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugins.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin-node
+%attr(754,root,root) /etc/rc.d/init.d/munin-asyncd
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
+%{systemdunitdir}/munin-asyncd.service
 %{systemdunitdir}/munin-node.service
 %attr(755,root,root) %{_bindir}/munindoc
+%attr(755,root,root) %{_sbindir}/munin-asyncd
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
 %attr(755,root,root) %{_sbindir}/munin-run
@@ -325,13 +341,13 @@ fi
 %{perl_vendorlib}/Munin/Plugin
 %{perl_vendorlib}/Munin/Plugin.pm
 %attr(755,root,root) %{_datadir}/munin/munin-async
-%attr(755,root,root) %{_datadir}/munin/munin-asyncd
 %dir %{_datadir}/munin/plugins
 %attr(755,root,root) %{_datadir}/munin/plugins/*
 %if !%{with sybase}
 %exclude %{_datadir}/munin/plugins/sybase_space
 %endif
 %dir %attr(770,munin,munin) /var/lib/munin/plugin-state
+%dir %attr(770,munin,munin) /var/spool/munin
 %{_mandir}/man1/munin-node*
 %{_mandir}/man1/munin-run*
 %{_mandir}/man1/munin-sched*
