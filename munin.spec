@@ -10,7 +10,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	2.0.17
-Release:	3
+Release:	4
 License:	GPL
 Group:		Applications/WWW
 Source0:	http://downloads.sourceforge.net/munin/%{name}-%{version}.tar.gz
@@ -55,6 +55,8 @@ Conflicts:	apache-base < 2.4.0-1
 Conflicts:	logrotate < 3.8.0
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
+
+%define		_noautoreq_perl	DBD::Pg
 
 %define		_sysconfdir	/etc/%{name}
 %define		_webapps	/etc/webapps
@@ -110,6 +112,7 @@ Requires:	procps >= 2.0.7
 Requires:	rc-scripts >= 0.4.0.15
 Requires:	systemd-units >= 38
 Requires:	sysstat
+Suggests:	perl-DBD-Pg
 Conflicts:	logrotate < 3.7-4
 
 %description node
@@ -225,7 +228,7 @@ fi
 %service munin-node restart "Munin Node agent"
 %service munin-asyncd try-restart "Munin Asyncd agent"
 %systemd_post munin-node.service
-%systemd_restart munin-asyncd.service
+%systemd_service_restart munin-asyncd.service
 
 %preun node
 if [ "$1" = "0" ] ; then
