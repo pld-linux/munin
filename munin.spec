@@ -32,6 +32,7 @@ Patch2:		%{name}-templatedir.patch
 Patch3:		%{name}-separate-configs.patch
 Patch4:		%{name}-timeout.patch
 URL:		http://munin.sourceforge.net/
+BuildRequires:	perl-Encode
 BuildRequires:	perl-Net-SNMP
 BuildRequires:	perl-devel
 BuildRequires:	rpm-perlprov
