@@ -10,7 +10,7 @@ Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
 Version:	2.0.19
-Release:	1
+Release:	2
 License:	GPL
 Group:		Applications/WWW
 Source0:	http://downloads.sourceforge.net/munin/%{name}-%{version}.tar.gz
@@ -133,7 +133,9 @@ Munin.
 %patch4 -p1
 
 %build
-%{__make} -j1 build JCVALID=no
+%{__make} -j1 build \
+	PERL_MB_OPT="perl=%{__perl}" \
+	JCVALID=no
 
 %install
 rm -rf $RPM_BUILD_ROOT
