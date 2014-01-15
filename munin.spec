@@ -4,7 +4,7 @@
 #
 # Condtional build:
 %bcond_with	sybase		# add Sybase support to munin-node
-#
+
 %include	/usr/lib/rpm/macros.perl
 Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
@@ -111,8 +111,8 @@ Requires:	perl-Net-Server
 Requires:	perl-libwww
 Requires:	procps >= 2.0.7
 Requires:	rc-scripts >= 0.4.0.15
-Requires:	systemd-units >= 38
 Requires:	sysstat
+Requires:	systemd-units >= 38
 Suggests:	perl-DBD-Pg
 Conflicts:	logrotate < 3.7-4
 
@@ -140,7 +140,7 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_sbindir}} \
 	$RPM_BUILD_ROOT/var/log/archive/munin \
 	$RPM_BUILD_ROOT%{_webapps}/%{_webapp} \
-	$RPM_BUILD_ROOT/usr/lib/tmpfiles.d \
+	$RPM_BUILD_ROOT%{systemdtmpfilesdir} \
 	$RPM_BUILD_ROOT%{systemdunitdir}
 
 %{__make} -j1 install \
@@ -151,22 +151,22 @@ install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_s
 # move asyncd daemon do sbin
 %{__mv} $RPM_BUILD_ROOT{%{_datadir}/munin,%{_sbindir}}/munin-asyncd
 
-install %{SOURCE11} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-asyncd
-install %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
-install %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
-install %{SOURCE5} $RPM_BUILD_ROOT/etc/logrotate.d/munin-node
+install -p %{SOURCE11} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-asyncd
+install -p %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/munin-node
+cp -p %{SOURCE2} $RPM_BUILD_ROOT/etc/cron.d/munin
+cp -p %{SOURCE4} $RPM_BUILD_ROOT/etc/logrotate.d/munin
+cp -p %{SOURCE5} $RPM_BUILD_ROOT/etc/logrotate.d/munin-node
 
-install %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/apache.conf
-install %{SOURCE8} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
-install %{SOURCE6} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/lighttpd.conf
+cp -p %{SOURCE3} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/apache.conf
+cp -p %{SOURCE8} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/httpd.conf
+cp -p %{SOURCE6} $RPM_BUILD_ROOT%{_webapps}/%{_webapp}/lighttpd.conf
 
-install %{SOURCE7} $RPM_BUILD_ROOT/usr/lib/tmpfiles.d/%{name}.conf
+cp -p %{SOURCE7} $RPM_BUILD_ROOT%{systemdtmpfilesdir}/%{name}.conf
 
-install %{SOURCE9} $RPM_BUILD_ROOT%{systemdunitdir}/munin-node.service
-install %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/munin-asyncd.service
+cp -p %{SOURCE9} $RPM_BUILD_ROOT%{systemdunitdir}/munin-node.service
+cp -p %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/munin-asyncd.service
 
-install dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
+cp -p dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
 ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
 
 for f in cgi-graph cgi-html graph html limits update ; do
@@ -311,7 +311,7 @@ fi
 %defattr(644,root,root,755)
 %doc README ChangeLog logo* Checklist
 %dir %{_datadir}/munin
-/usr/lib/tmpfiles.d/%{name}.conf
+%{systemdtmpfilesdir}/%{name}.conf
 %attr(770,munin,http) %dir /var/log/munin
 %attr(750,munin,http) %dir /var/log/archive/munin
 %attr(771,munin,munin) %dir /var/lib/munin
