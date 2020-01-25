@@ -5,7 +5,6 @@
 # Condtional build:
 %bcond_with	sybase		# add Sybase support to munin-node
 
-%include	/usr/lib/rpm/macros.perl
 Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
