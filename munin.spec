@@ -230,8 +230,7 @@ if [ "$1" = "1" ] ; then
 fi
 %service munin-node restart "Munin Node agent"
 %service munin-asyncd try-restart "Munin Asyncd agent"
-%systemd_post munin-node.service
-%systemd_service_restart munin-asyncd.service
+%systemd_post munin-node.service munin-asyncd.service
 
 %preun node
 if [ "$1" = "0" ] ; then
