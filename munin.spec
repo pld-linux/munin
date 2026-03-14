@@ -8,12 +8,12 @@
 Summary:	Munin - the Linpro RRD data agent
 Summary(pl.UTF-8):	Munin - agent danych RRD Linpro
 Name:		munin
-Version:	2.0.19
-Release:	5
+Version:	2.0.76
+Release:	0.1
 License:	GPL
 Group:		Applications/WWW
-Source0:	http://downloads.sourceforge.net/munin/%{name}-%{version}.tar.gz
-# Source0-md5:	ab27d477052c0f5da4ed81edb7f95f1b
+Source0:	https://github.com/munin-monitoring/munin/archive/refs/tags/%{version}.tar.gz
+# Source0-md5:	d1c4d3818cee639866488d23e1bd855d
 Source1:	%{name}-node.init
 Source2:	%{name}.cron
 Source3:	%{name}-apache.conf
@@ -25,12 +25,10 @@ Source8:	%{name}-httpd.conf
 Source9:	%{name}-node.service
 Source10:	%{name}-asyncd.service
 Source11:	%{name}-asyncd.init
+Source12:	%{name}-plugins.conf
 Patch0:		%{name}-Makefile.patch
-Patch1:		%{name}-plugins.patch
-Patch2:		%{name}-templatedir.patch
-Patch3:		%{name}-separate-configs.patch
-Patch4:		%{name}-timeout.patch
-URL:		http://munin.sourceforge.net/
+Patch1:		%{name}-timeout.patch
+URL:		https://munin-monitoring.org/
 BuildRequires:	perl-Encode
 BuildRequires:	perl-Net-SNMP
 BuildRequires:	perl-devel
@@ -38,7 +36,7 @@ BuildRequires:	rpm-perlprov
 BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.671
 BuildRequires:	which
-Requires(triggerpostun):	sed >= 4.0
+Requires(postun):	sed >= 4.0
 Requires:	%{name}-common = %{version}-%{release}
 Requires:	fonts-TTF-DejaVu
 Requires:	perl-Date-Manip
@@ -128,12 +126,10 @@ Munin.
 %setup -q
 %patch -P0 -p1
 %patch -P1 -p1
-%patch -P2 -p1
-%patch -P3 -p1
-%patch -P4 -p1
 
 %build
 %{__make} -j1 build \
+	PERL5LIB=. \
 	PERL_MB_OPT="perl=%{__perl}" \
 	JCVALID=no
 
@@ -146,6 +142,7 @@ install -d $RPM_BUILD_ROOT{/etc/{rc.d/init.d,cron.d,logrotate.d},%{_bindir},%{_s
 	$RPM_BUILD_ROOT%{systemdunitdir}
 
 %{__make} -j1 install \
+	PERL5LIB=. \
 	JCVALID=no \
 	CHOWN=/bin/true \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -168,8 +165,18 @@ cp -p %{SOURCE7} $RPM_BUILD_ROOT%{systemdtmpfilesdir}/%{name}.conf
 cp -p %{SOURCE9} $RPM_BUILD_ROOT%{systemdunitdir}/munin-node.service
 cp -p %{SOURCE10} $RPM_BUILD_ROOT%{systemdunitdir}/munin-asyncd.service
 
-cp -p dists/tarball/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}
-ln -sf %{_sysconfdir}/plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
+cp -p %{SOURCE12} $RPM_BUILD_ROOT%{_sysconfdir}/plugins.conf
+ln -sf ../plugins.conf $RPM_BUILD_ROOT%{_sysconfdir}/plugin-conf.d/munin-node
+
+%{__sed} -i \
+	-e '1s|^#!/usr/bin/env python3$|#!%{__python3}|' \
+	-e '1s|^#!/usr/bin/env python$|#!%{__python3}|' \
+	-e '1s|^#!/usr/bin/env ruby$|#!%{__ruby}|' \
+	$RPM_BUILD_ROOT%{_datadir}/munin/plugins/{ipmi_sensor_,smart_,tomcat_}
+
+# use system-provided DejaVu fonts
+rm -f $RPM_BUILD_ROOT%{_datadir}/munin/DejaVuSans.ttf \
+	$RPM_BUILD_ROOT%{_datadir}/munin/DejaVuSansMono.ttf
 
 for f in cgi-graph cgi-html graph html limits update ; do
 	touch $RPM_BUILD_ROOT/var/log/munin/munin-$f.log
@@ -260,7 +267,6 @@ fi
 %files
 %defattr(644,root,root,755)
 %dir %attr(750,munin,http) %{_webapps}/%{_webapp}
-%dir %attr(750,munin,http) %{_webapps}/%{_webapp}/munin-conf.d
 %dir %{_webapps}/%{_webapp}/templates
 %{_webapps}/%{_webapp}/templates/*.tmpl
 %dir %{_webapps}/%{_webapp}/templates/static
@@ -271,7 +277,7 @@ fi
 %{_webapps}/%{_webapp}/templates/static/*.png
 %dir %{_webapps}/%{_webapp}/templates/partial
 %{_webapps}/%{_webapp}/templates/partial/*.tmpl
-%config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/munin.conf
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/apache.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/httpd.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_webapps}/%{_webapp}/lighttpd.conf
@@ -289,6 +295,7 @@ fi
 %attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-graph
 %attr(755,munin,root) %{_datadir}/munin/cgi/munin-cgi-html
 %attr(755,munin,root) %dir %{_htmldir}
+%attr(640,munin,http) %config(noreplace) %{_htmldir}/.htaccess
 %{perl_vendorlib}/Munin/Master
 %{_mandir}/man3/Munin::Master*
 %{_mandir}/man5/munin.conf*
@@ -328,18 +335,18 @@ fi
 %dir %{_sysconfdir}/plugin-conf.d
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/munin-node.conf
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugins.conf
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/plugin-conf.d/munin-node
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) /etc/logrotate.d/munin-node
 %attr(754,root,root) /etc/rc.d/init.d/munin-asyncd
 %attr(754,root,root) /etc/rc.d/init.d/munin-node
 %{systemdunitdir}/munin-asyncd.service
 %{systemdunitdir}/munin-node.service
 %attr(755,root,root) %{_bindir}/munindoc
+%attr(755,root,root) %{_bindir}/munin-get
 %attr(755,root,root) %{_sbindir}/munin-asyncd
 %attr(755,root,root) %{_sbindir}/munin-node
 %attr(755,root,root) %{_sbindir}/munin-node-configure
 %attr(755,root,root) %{_sbindir}/munin-run
-%attr(755,root,root) %{_sbindir}/munin-sched
 %{perl_vendorlib}/Munin/Node
 %{perl_vendorlib}/Munin/Plugin
 %{perl_vendorlib}/Munin/Plugin.pm
@@ -352,8 +359,8 @@ fi
 %dir %attr(770,munin,munin) /var/lib/munin/plugin-state
 %dir %attr(770,munin,munin) /var/spool/munin
 %{_mandir}/man1/munin-node*
+%{_mandir}/man1/munin-get*
 %{_mandir}/man1/munin-run*
-%{_mandir}/man1/munin-sched*
 %{_mandir}/man1/munindoc*
 %{_mandir}/man3/Munin::Node*
 %{_mandir}/man3/Munin::Plugin*
@@ -361,4 +368,3 @@ fi
 
 #%files plugins-java
 #%defattr(644,root,root,755)
-#%{_datadir}/munin/munin-jmx-plugins.jar

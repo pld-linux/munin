@@ -1,6 +1,16 @@
---- munin-1.4.0/Makefile~	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0/Makefile	2009-11-30 14:33:15.977700738 +0100
-@@ -77,6 +77,7 @@
+diff -urN munin-2.0.76/Makefile munin-2.0.76-patched/Makefile
+--- munin-2.0.76/Makefile	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/Makefile	2026-03-14 15:50:12.053246790 +0100
+@@ -101,12 +101,13 @@
+ 	$(CHOWN) $(USER) $(LOGDIR) $(STATEDIR) $(SPOOLDIR)
+ 
+ install-master-prime: $(INFILES_MASTER) install-pre install-master
+-	mkdir -p $(CONFDIR)/templates
+-	mkdir -p $(CONFDIR)/static
+-	mkdir -p $(CONFDIR)/templates/partial
++	mkdir -p $(TEMPLATEDIR)
++	mkdir -p $(TEMPLATEDIR)/static
++	mkdir -p $(TEMPLATEDIR)/partial
  	mkdir -p $(CONFDIR)/munin-conf.d
  	mkdir -p $(LIBDIR)
  	mkdir -p $(BINDIR)
@@ -8,7 +18,26 @@
  	mkdir -p $(PERLLIB)
  	mkdir -p $(PERLLIB)/Munin/Master
  	mkdir -p $(HTMLDIR)
-@@ -99,8 +100,8 @@
+@@ -121,15 +122,15 @@
+ 	$(CHMOD) 0755 $(DBDIR)/cgi-tmp
+ 
+ 	for p in master/www/*.tmpl ;  do \
+-		$(INSTALL) -m 0644 "$$p" $(CONFDIR)/templates/ ; \
++		$(INSTALL) -m 0644 "$$p" $(TEMPLATEDIR)/ ; \
+ 	done
+ 
+ 	for p in master/static/* ; do \
+-		$(INSTALL) -m 0644 "$$p" $(CONFDIR)/static/ ; \
++		$(INSTALL) -m 0644 "$$p" $(TEMPLATEDIR)/static/ ; \
+ 	done
+ 
+ 	for p in master/www/partial/*.tmpl; do \
+-		$(INSTALL) -m 0644 "$$p" $(CONFDIR)/templates/partial/ ; \
++		$(INSTALL) -m 0644 "$$p" $(TEMPLATEDIR)/partial/ ; \
+ 	done
+ 
+ 	$(INSTALL) -m 0644 master/DejaVuSansMono.ttf $(LIBDIR)/
+@@ -138,8 +139,8 @@
  	test -f $(HTMLDIR)/.htaccess || $(INSTALL) -m 0644 build/master/www/munin-htaccess $(HTMLDIR)/.htaccess
  	test -f "$(CONFDIR)/munin.conf"  || $(INSTALL) -m 0644 build/master/munin.conf $(CONFDIR)/
  
@@ -17,10 +46,37 @@
 +	$(INSTALL) -m 0755 build/master/_bin/munin-cron $(SBINDIR)/
 +	$(INSTALL) -m 0755 build/master/_bin/munin-check $(LIBDIR)/
  	$(INSTALL) -m 0755 build/master/_bin/munin-update $(LIBDIR)/
- 	$(INSTALL) -m 0755 build/master/_bin/munin-graph $(LIBDIR)/
  	$(INSTALL) -m 0755 build/master/_bin/munin-html $(LIBDIR)/
---- munin-1.4.0/Makefile.config~	2009-11-27 12:17:18.000000000 +0100
-+++ munin-1.4.0/Makefile.config	2009-11-30 14:32:28.827763277 +0100
+ 	$(INSTALL) -m 0755 build/master/_bin/munin-graph $(LIBDIR)/
+@@ -267,6 +268,7 @@
+ 		-e 's|@@GOODSH@@|$(GOODSH)|g' \
+ 		-e 's|@@BASH@@|$(BASH)|g' \
+ 		-e 's|@@HASSETR@@|$(HASSETR)|g' \
++		-e 's|@@TEMPLATEDIR@@|$(TEMPLATEDIR)|g' \
+ 		$< > $@;
+ 
+ 
+@@ -313,6 +315,7 @@
+ 		-e 's|\@\@GOODSH\@\@|$(GOODSH)|g;' \
+ 		-e 's|\@\@BASH\@\@|$(BASH)|g;' \
+ 		-e 's|\@\@HASSETR\@\@|$(HASSETR)|g;' \
++		-e 's|\@\@TEMPLATEDIR\@\@|$(TEMPLATEDIR)|g;' \
+ 		$(CONFVAR_SUBSTITUTION_FILES)
+ 
+ 
+@@ -366,7 +369,8 @@
+ 		s{(PLUGINUSER\s+=\s).*}{\1q{$(PLUGINUSER)};}x; \
+ 		s{(GOODSH\s+=\s).*}{\1q{$(GOODSH)};}x; \
+ 		s{(BASH\s+=\s).*}{\1q{$(BASH)};}x; \
+-		s{(HASSETR\s+=\s).*}{\1q{$(HASSETR)};}x;' \
++		s{(HASSETR\s+=\s).*}{\1q{$(HASSETR)};}x; \
++		s{(TEMPLATEDIR\s+=\s).*}{\1q{$(TEMPLATEDIR)};}x;' \
+ 		common/lib/Munin/Common/Defaults.pm >common/blib/lib/Munin/Common/Defaults.pm
+ 
+ 
+diff -urN munin-2.0.76/Makefile.config munin-2.0.76-patched/Makefile.config
+--- munin-2.0.76/Makefile.config	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/Makefile.config	2026-03-14 15:50:27.356580115 +0100
 @@ -17,10 +17,10 @@
  #
  # the base of the Munin installation.
@@ -34,7 +90,7 @@
  
  # Server only - where to put munin-cron
  BINDIR     = $(PREFIX)/bin
-@@ -32,31 +32,31 @@
+@@ -32,31 +32,32 @@
  DOCDIR     = $(PREFIX)/doc
  
  # Where to put man pages
@@ -50,6 +106,7 @@
 -CGIDIR     = $(PREFIX)/www/cgi
 +HTMLDIR    = $(DESTDIR)/var/lib/munin/html
 +CGIDIR     = $(LIBDIR)/cgi
++TEMPLATEDIR= $(DESTDIR)/etc/webapps/munin/templates
  
  # Where to put internal data for master (RRD, internal files, ...)
 -DBDIR      = $(DESTDIR)/var/opt/munin
@@ -62,7 +119,7 @@
  # Client only - Where the spool files are written. Must be writable by
  # group "munin", and should be preserved between reboots
 -SPOOLDIR   = $(DBDIR)/spool
-+SPOOLDIR  = $(DESTDIR)/var/spool/munin
++SPOOLDIR   = $(DESTDIR)/var/spool/munin
  
  # Client only - Where plugins should put their states. Must be writable by
  # group "munin", and should be preserved between reboots
@@ -75,16 +132,16 @@
  
  # Location of PID files and other statefiles. On the server, must be
  # writable by the user "munin".
-@@ -98,7 +98,7 @@
+@@ -95,7 +96,7 @@
  BASH       := /bin/bash
  
  # Server only - Where to install the perl libraries
--PERLSITELIB := $(shell $(PERL) -V:sitelib | cut -d"'" -f2)
-+PERLSITELIB := $(shell $(PERL) -V:vendorlib | cut -d"'" -f2)
- PERLLIB    = $(DESTDIR)$(PERLSITELIB)
+-PERLLIB    = $(DESTDIR)$(shell $(PERL) -V:sitelib | cut -d"'" -f2)
++PERLLIB    = $(DESTDIR)$(shell $(PERL) -V:vendorlib | cut -d"'" -f2)
  
  # Client only - Install plugins for this architecture
-@@ -106,7 +106,7 @@
+ # the LANG=C makes tr work as expected, not regarding any locale it
+@@ -105,7 +106,7 @@
  
  # How to figure out the hostname. (Only used in default configuration
  # files)
@@ -93,22 +150,14 @@
  
  # What is the safest way to create a tempfile.
  # Default is to figure it out by testing various methods.
-@@ -126,9 +126,9 @@
- # Which command to use to check if the USER and GROUP to run Munin as, exists.
- # These will work on most modern OSes:
- #
--GETENT     := $(shell which getent || which true 2>/dev/null)
--CHECKUSER  := $(shell $(GETENT) passwd $(USER) >/dev/null 2>/dev/null || (echo "echo User $(USER) nonexistent. Create the user and retry; exit 2"))
--CHECKGROUP := $(shell $(GETENT) group $(GROUP) >/dev/null 2>/dev/null || (echo "echo Group $(GROUP) nonexistent. Create the group and retry; exit 2"))
-+GETENT     := /bin/true
+@@ -151,12 +152,12 @@
+         endif
+     endif
+ endif
+-CHECKUSER  := $(shell $(CHECKUSER_COMMAND) >/dev/null 2>/dev/null || (echo "echo User $(USER) nonexistent. Create the user and retry; exit 2"))
+-CHECKGROUP := $(shell $(CHECKGROUP_COMMAND) >/dev/null 2>/dev/null || (echo "echo Group $(GROUP) nonexistent. Create the group and retry; exit 2"))
 +CHECKUSER  := /bin/true
 +CHECKGROUP := /bin/true
- 
- # For OSX, comment out the previous two lines and comment in these
- #
-@@ -146,9 +146,9 @@
- #CHECKUSER  := $(shell pwget -n $(USER) >/dev/null 2>/dev/null || (echo "echo User $(USER) nonexistent. Create the user and retry; exit 2"))
- #CHECKGROUP := $(shell grget -n $(GROUP) >/dev/null 2>/dev/null || (echo "echo Group $(GROUP) nonexistent. Create the group and retry; exit 2"))
  
 -CHOWN      := chown
 -CHMOD      := chmod
@@ -119,3 +168,93 @@
  
  # Java compiler stuff - only needed on the buildhost
  JC         := javac
+diff -urN munin-2.0.76/common/lib/Munin/Common/Defaults.pm munin-2.0.76-patched/common/lib/Munin/Common/Defaults.pm
+--- munin-2.0.76/common/lib/Munin/Common/Defaults.pm	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/common/lib/Munin/Common/Defaults.pm	2026-03-14 15:50:31.246580115 +0100
+@@ -30,6 +30,7 @@
+ our $MUNIN_MANDIR     = '';
+ our $MUNIN_LOGDIR     = "$COMPONENT_ROOT/log/";
+ our $MUNIN_STATEDIR   = ''; 
++our $MUNIN_TEMPLATEDIR = '';
+ our $MUNIN_USER       = getpwuid $UID;
+ our $MUNIN_GROUP      = getgrgid $GID;
+ our $MUNIN_PLUGINUSER = getpwuid $UID;
+@@ -111,4 +112,3 @@
+ Export all the package variables to the environment.
+ 
+ =back
+-
+diff -urN munin-2.0.76/contrib/munin-every-services-all-boxes-build-html.in munin-2.0.76-patched/contrib/munin-every-services-all-boxes-build-html.in
+--- munin-2.0.76/contrib/munin-every-services-all-boxes-build-html.in	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/contrib/munin-every-services-all-boxes-build-html.in	2026-03-14 15:50:54.703246763 +0100
+@@ -23,7 +23,7 @@
+ 
+   chown @@USER@@.@@GROUP@@ @@HTMLDIR@@/every-services-all-boxes
+ 
+-in @@CONFDIR@@/templates/munin-overview.tmpl:
++in @@TEMPLATEDIR@@/munin-overview.tmpl:
+ 
+  <div class="box">
+     <a href=every-services-all-boxes>every services on all boxes</a>
+@@ -111,4 +111,3 @@
+     print PF "<table></body></html>\n";
+     close PF;
+ }
+-
+diff -urN munin-2.0.76/master/doc/munin.conf.pod.in munin-2.0.76-patched/master/doc/munin.conf.pod.in
+--- munin-2.0.76/master/doc/munin.conf.pod.in	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/master/doc/munin.conf.pod.in	2026-03-14 15:50:52.009913432 +0100
+@@ -70,7 +70,7 @@
+ 
+ Directory for files tracking munin's current running state.  Required.
+ 
+-=item B<tmpldir> I<path> (Default: F<@@CONFDIR@@/templates>)
++=item B<tmpldir> I<path> (Default: F<@@TEMPLATEDIR@@>)
+ 
+ Directory for templates used to generate HTML pages.  Required.
+ 
+diff -urN munin-2.0.76/master/lib/Munin/Master/Config.pm munin-2.0.76-patched/master/lib/Munin/Master/Config.pm
+--- munin-2.0.76/master/lib/Munin/Master/Config.pm	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/master/lib/Munin/Master/Config.pm	2026-03-14 15:50:38.243246780 +0100
+@@ -159,8 +159,8 @@
+ 		tls_private_key  => "$Munin::Common::Defaults::MUNIN_CONFDIR/munin.pem",
+ 		tls_verify_certificate => 0,
+ 		tls_verify_depth => 5,
+-		tmpldir          => "$Munin::Common::Defaults::MUNIN_CONFDIR/templates",
+-	        staticdir        => "$Munin::Common::Defaults::MUNIN_CONFDIR/static",
++		tmpldir          => "$Munin::Common::Defaults::MUNIN_TEMPLATEDIR",
++	        staticdir        => "$Munin::Common::Defaults::MUNIN_TEMPLATEDIR/static",
+ 	        cgitmpdir        => "$Munin::Common::Defaults::MUNIN_DBDIR/cgi-tmp",
+ 		ssh_command      => "ssh",
+ 		ssh_options      => "-o ChallengeResponseAuthentication=no -o StrictHostKeyChecking=no",
+diff -urN munin-2.0.76/master/lib/Munin/Master/Utils.pm munin-2.0.76-patched/master/lib/Munin/Master/Utils.pm
+--- munin-2.0.76/master/lib/Munin/Master/Utils.pm	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/master/lib/Munin/Master/Utils.pm	2026-03-14 15:50:46.313246768 +0100
+@@ -999,8 +999,8 @@
+     $config->{'rundir'}        ||= $Munin::Common::Defaults::MUNIN_STATEDIR;
+     $config->{'dbdir'}         ||= $Munin::Common::Defaults::MUNIN_DBDIR;
+     $config->{'logdir'}        ||= $Munin::Common::Defaults::MUNIN_LOGDIR;
+-    $config->{'tmpldir'}       ||= "$Munin::Common::Defaults::MUNIN_CONFDIR/templates/";
+-    $config->{'staticdir'}     ||= "$Munin::Common::Defaults::MUNIN_CONFDIR/static/";
++    $config->{'tmpldir'}       ||= "$Munin::Common::Defaults::MUNIN_TEMPLATEDIR";
++    $config->{'staticdir'}     ||= "$Munin::Common::Defaults::MUNIN_TEMPLATEDIR/static/";
+     $config->{'htmldir'}       ||= $Munin::Common::Defaults::MUNIN_HTMLDIR;
+     $config->{'spooldir'}      ||= $Munin::Common::Defaults::MUNIN_SPOOLDIR;
+     $config->{'#%#parent'}     = undef;
+diff -urN munin-2.0.76/master/munin.conf.in munin-2.0.76-patched/master/munin.conf.in
+--- munin-2.0.76/master/munin.conf.in	2024-05-17 13:03:48.000000000 +0200
++++ munin-2.0.76-patched/master/munin.conf.in	2026-03-14 15:50:49.073246767 +0100
+@@ -12,11 +12,11 @@
+ 
+ # Where to look for the HTML templates
+ #
+-#tmpldir	@@CONFDIR@@/templates
++#tmpldir	@@TEMPLATEDIR@@
+ 
+ # Where to look for the static www files
+ #
+-#staticdir @@CONFDIR@@/static
++#staticdir @@TEMPLATEDIR@@/static
+ 
+ # temporary cgi files are here. note that it has to be writable by 
+ # the cgi user (usually nobody or httpd).
