@@ -83,6 +83,8 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Provides:	group(munin)
+Provides:	user(munin)
 
 %description common
 Munin, formerly known as The Linpro RRD server, queries a number of
